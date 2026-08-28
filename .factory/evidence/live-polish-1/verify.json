@@ -1,6 +1,6 @@
 {
   "url": "https://terminal-recall.sociobot.in",
-  "loadMs": 850,
+  "loadMs": 1917,
   "errors": [],
   "a11y": {
     "title": "Terminal Recall — save and find terminal output",
@@ -9,6 +9,6 @@
     "main": true,
     "imgsMissingAlt": 0,
     "buttonsUnlabeled": 0,
-    "textLength": 2362
+    "textLength": 2370
   }
 }

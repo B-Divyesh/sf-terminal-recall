@@ -103,13 +103,13 @@ assert.deepEqual(await seriousAxeFindings(page), []);
 await page.screenshot({ path: `${evidence}/live-demo-desktop.png`, fullPage: true });
 
 await page.goBack();
-await page.waitForURL(`${base}/`);
+await page.waitForURL(url => url.pathname === '/' && !url.searchParams.has('demo'));
 assert.equal(await page.evaluate(() => localStorage.getItem('demo:terminal-recall:logs')), null);
-assert.equal(await page.evaluate(() => document.activeElement === document.querySelector('h1')), true);
+await page.waitForFunction(() => document.activeElement === document.querySelector('h1'));
 await page.goForward();
 await page.waitForURL(`${base}/?demo=1`);
 assert.ok(await page.evaluate(() => localStorage.getItem('demo:terminal-recall:logs')));
-assert.equal(await page.evaluate(() => document.activeElement === document.querySelector('h1')), true);
+await page.waitForFunction(() => document.activeElement === document.querySelector('h1'));
 
 await page.evaluate(() => navigator.serviceWorker.ready);
 await page.reload();
@@ -132,7 +132,7 @@ await mobilePage.goto(`${base}/?demo=1`, { waitUntil: 'networkidle' });
 assert.equal(await mobilePage.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
 assert.deepEqual(await undersizedTargets(mobilePage), []);
 assert.deepEqual(await seriousAxeFindings(mobilePage), []);
-const transcript = mobilePage.getByLabel(/Captured terminal output/);
+const transcript = mobilePage.getByLabel(/Saved terminal output/);
 await transcript.focus();
 assert.equal(await transcript.evaluate(element => element === document.activeElement), true);
 await mobilePage.keyboard.press('ArrowDown');

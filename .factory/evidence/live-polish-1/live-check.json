@@ -1,0 +1,33 @@
+{
+  "base": "https://terminal-recall.sociobot.in",
+  "headers": {
+    "cache-control": "public, must-revalidate, max-age=30",
+    "content-encoding": "br",
+    "content-security-policy": "default-src 'self'; connect-src 'self' https://api.github.com; img-src 'self' blob:; style-src 'self'; script-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
+    "content-type": "text/html",
+    "date": "Fri, 28 Aug 2026 20:18:58 GMT",
+    "etag": "\"29775238\"",
+    "last-modified": "Fri, 28 Aug 2026 20:16:36 GMT",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "strict-transport-security": "max-age=10886400; includeSubDomains; preload",
+    "transfer-encoding": "chunked",
+    "vary": "Accept-Encoding",
+    "x-content-type-options": "nosniff",
+    "x-dns-prefetch-control": "off",
+    "x-xss-protection": "1; mode=block"
+  },
+  "identity": {
+    "assets/index-DqGzdHDZ.js": "a36d5492e0c4044419436fe5ee94eedf80ba462b3c5cf313b82305f03d2cc715",
+    "assets/index-DpCqbz35.css": "cfc34b04752d43f7b2613a846c1fe9243684f44fed322e03876bece3244c1d11",
+    "hero-terminal-recall.webp": "b106d20744b0acffdb88c04f9c4d5ef4f22ee6b138e71497c62ee41a92dc2dd4",
+    "terminal-recall-share.webp": "c258f3e50550dfe64461bac5be1b7510c688a3c4157ba89027762e838c59b41c",
+    "terminal-recall-demo.cast": "a930e4e3fb6a324692143dea5bd959aba79ad29e93acb3d7941420158a93c99d",
+    "sw.js": "23f36e288e5f6fff57169d7c431ed703054fa5f40af77e76395e10056b86292f"
+  },
+  "cacheNames": [
+    "terminal-recall-v4"
+  ],
+  "errors": [],
+  "mobileErrors": [],
+  "release": "v0.1.4"
+}
