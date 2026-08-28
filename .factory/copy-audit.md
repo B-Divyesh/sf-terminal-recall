@@ -7,11 +7,11 @@ Landing sentences were checked against the 22-word cap and banned-word list.
 | Find terminal output after it disappears | 6 | Pass |
 | For developers who need a command result after the session ends. | 11 | Pass |
 | Opens a saved deploy record. | 5 | Pass |
-| Only commands you choose. | 4 | Pass |
-| Encrypted on your device. | 4 | Pass |
+| Capture commands on purpose. | 4 | Pass |
+| Search encrypted local records. | 5 | Pass |
 | Free local core. | 3 | Pass |
 | Demo records use a separate local storage key. | 9 | Pass |
-| You choose each command to capture. | 7 | Pass |
+| You start each capture. | 5 | Pass |
 | Records stay on this device. | 6 | Pass |
 | Exported excerpts replace common keys and tokens. | 7 | Pass |
 

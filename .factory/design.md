@@ -14,7 +14,7 @@ like an operator's annotated incident notebook rather than a glossy dashboard.
 | `--ink` | `#17211e` | dark pine text and terminal ground |
 | `--paper` | `#f6f0df` | warm recycled-paper page |
 | `--cream` | `#fffaf0` | raised paper surfaces |
-| `--coral` | `#d84b42` | main action and redaction marks |
+| `--coral` | `#b93732` | main action and redaction marks; darkened to keep cream CTA text above 4.5:1 |
 | `--teal` | `#087d76` | links, match marks, success |
 | `--sun` | `#edb72c` | notes and warnings |
 | `--plum` | `#62345a` | secondary ink |
