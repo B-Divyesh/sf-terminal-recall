@@ -25,8 +25,15 @@ Both scripts verify the published SHA-256 checksum before placing the binary on
 your PATH. Windows and macOS binaries are unsigned; on macOS use right-click →
 Open if Gatekeeper asks.
 
-Package-manager metadata is also shipped for Homebrew, Scoop, and winget. For a
-source build, install Rust and run:
+Homebrew users can install the tap:
+
+```sh
+brew install B-Divyesh/terminal-recall/terminal-recall
+```
+
+Scoop users can add this repository as a bucket and install
+`terminal-recall`. The `winget/` folder is ready for submission to
+`microsoft/winget-pkgs`. For a source build, install Rust and run:
 
 ```sh
 cargo install --path cli
@@ -91,7 +98,7 @@ The product has no account or paid feature. See `/privacy` and `/terms`.
 
 ## Release and deployment
 
-Tag `v0.1.1` to run [.github/workflows/release.yml](.github/workflows/release.yml).
+Tag `v0.1.2` to run [.github/workflows/release.yml](.github/workflows/release.yml).
 It publishes Linux, Windows, and macOS archives, Linux `.deb`/RPM packages,
 macOS `.pkg` files, checksums, a manifest, and package-manager metadata. The
 static site is deployed with `npm ci && npm run build:site` from `dist/site`.

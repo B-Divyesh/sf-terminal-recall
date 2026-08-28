@@ -5,6 +5,7 @@ const posix = await readFile(new URL('../public/install.sh', import.meta.url), '
 const powershell = await readFile(new URL('../public/install.ps1', import.meta.url), 'utf8');
 
 assert.match(posix, /darwin\) platform=macos/);
+assert.match(posix, /grep "\$platform-\$arch\.tar\.gz"/);
 assert.match(posix, /SHA-256 tool not found/);
 assert.match(posix, /sha256sum/);
 assert.match(posix, /shasum -a 256/);

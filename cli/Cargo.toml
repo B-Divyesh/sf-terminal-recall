@@ -1,6 +1,6 @@
 [package]
 name = "terminal-recall"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 description = "Keep selected terminal output searchable, encrypted, and exportable"
 license = "MIT"

@@ -19,7 +19,7 @@ api="https://api.github.com/repos/$repo/releases/latest"
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 curl -fsSL "$api" -o "$tmp/release.json"
-url=$(grep -o 'https:[^"]*terminal-recall-[^"]*' "$tmp/release.json" | grep "$platform-$arch" | head -1)
+url=$(grep -o 'https:[^"]*terminal-recall-[^"]*' "$tmp/release.json" | grep "$platform-$arch.tar.gz" | head -1)
 sumurl=$(grep -o 'https:[^"]*SHA256SUMS[^"]*' "$tmp/release.json" | head -1)
 [ -n "$url" ] && [ -n "$sumurl" ] || { echo "No matching release asset is published yet." >&2; exit 1; }
 

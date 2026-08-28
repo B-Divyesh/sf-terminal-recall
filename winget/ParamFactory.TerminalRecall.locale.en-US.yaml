@@ -1,6 +1,6 @@
 PackageIdentifier: ParamFactory.TerminalRecall
-PackageVersion: 0.1.0
-PackageLocale: en-US
+PackageVersion: 0.1.1
+DefaultLocale: en-US
 Publisher: Param Factory
 PackageName: Terminal Recall
 ShortDescription: Keep selected terminal output searchable and local.

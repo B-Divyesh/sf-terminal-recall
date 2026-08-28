@@ -1,0 +1,13 @@
+PackageIdentifier: ParamFactory.TerminalRecall
+PackageVersion: 0.1.1
+InstallerType: zip
+Installers:
+  - Architecture: x64
+    InstallerUrl: https://github.com/B-Divyesh/sf-terminal-recall/releases/download/v0.1.1/terminal-recall-windows-x86_64.zip
+    InstallerSha256: bfde299c2a047ab438b7d96349bf12485008b402480962c04b1b60266729c3de
+    NestedInstallerType: portable
+    NestedInstallerFiles:
+      - RelativeFilePath: terminal-recall.exe
+        PortableCommandAlias: terminal-recall
+ManifestType: installer
+ManifestVersion: 1.6.0
