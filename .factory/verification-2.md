@@ -1,88 +1,129 @@
 # Independent verification 2 — FAIL
 
-**Candidate:** `5a5bf7eab139aa11c114bf7c9bfdab311bb3885e`
-**Live URL:** https://terminal-recall.sociobot.in
-**Verified:** 2026-08-28 UTC
-**Scope:** clean checkout, deployment, release, installer, and CLI; no product source changed.
+**Candidate:** `5a5bf7eab139aa11c114bf7c9bfdab311bb3885e`  
+**Live URL:** <https://terminal-recall.sociobot.in>  
+**Verified:** 2026-08-28 UTC  
+**Scope:** clean checkout, live deployment, release, installer, CLI, and browser;
+no product source was modified.
 
 ## Decision
 
-**FAIL.** The repaired release now installs and the main local workflow works, but it misses a core brief requirement: users cannot configure redaction rules, and an export leaks a representative database credential. The deployed interface also violates the required 44px touch-target baseline. See defects below.
+**FAIL.** The earlier deployment failures are repaired: the release is present,
+the live assets match this candidate, and the declared claims/build/tests pass.
+The candidate still fails configurable-redaction/privacy, touch-target, claims,
+and honest-installation requirements; it also has a record-delete traversal flaw.
 
 ## First read and demo gate
 
-A cold live visit returned HTTP 200, `Terminal Recall — save terminal output`, `lang=en`, one h1, and a main landmark. The first screen says what it does (“Find terminal output after it disappears”), who it is for (“For developers who need a command result after the session ends”), and what to do first (“Try it with sample data”; “Opens a saved deploy record”). This gate **passes**.
+Cold live `/` returned HTTP 200, title `Terminal Recall — save terminal output`,
+one h1, and main. It plainly says it finds terminal output after it disappears,
+is for developers needing a command result after a session ends, and says to
+click `Try it with sample data` (`Opens a saved deploy record`). This gate passes.
+`/demo` shows the realistic deploy output and persistent `Demo — sample data,
+nothing is saved` banner with Reset demo and Start for real.
 
-The action opens `/demo`, with a persistent “Demo — sample data, nothing is saved” banner, Reset demo, and Start for real. A fresh live demo flow requested only `https://terminal-recall.sociobot.in`, created `demo:terminal-recall:logs`, and did not create `terminal-recall:logs`.
+## Mandatory claims
 
-## Mandatory claim gate
+After normal clean-checkout prerequisite `npm ci`, every exact command declared
+in `.factory/claims.json` passed:
 
-`.factory/claims.json` exists. Before dependencies were installed the exact browser commands could not start because the clean clone lacked `@playwright/test`; after the required `npm ci`, every declared exact command passed.
-
-| Claim | Exact command | Result |
+| Claim | Command | Result |
 | --- | --- | --- |
-| `demo-private` | `npm test -- --grep @claim:demo-private` | PASS, 1 browser test |
-| `redacted-export` | `npm test -- --grep @claim:redacted-export` | PASS, 1 browser test |
-| `offline-demo` | `npm test -- --grep @claim:offline-demo` | PASS, 1 browser test |
-| `no-demo-uploads` | `npm test -- --grep @claim:no-demo-uploads` | PASS, 1 browser test |
-| `release-download` | `npm test -- --grep @claim:release-download` | PASS, 1 browser test |
-| `encrypted-local-records` | `cargo test --workspace claim_encrypted_local_records_are_not_plaintext` | PASS |
-| `chosen-capture` | `cargo test --workspace claim_capture_requires_explicit_command_or_stdin` | PASS |
-| `no-upload-path` | `cargo test --workspace claim_no_upload_path_is_present` | PASS |
+| `demo-private` | `npm test -- --grep @claim:demo-private` | PASS (1) |
+| `redacted-export` | `npm test -- --grep @claim:redacted-export` | PASS (1) |
+| `offline-demo` | `npm test -- --grep @claim:offline-demo` | PASS (1) |
+| `no-demo-uploads` | `npm test -- --grep @claim:no-demo-uploads` | PASS (1) |
+| `release-download` | `npm test -- --grep @claim:release-download` | PASS (1) |
+| `encrypted-local-records` | `cargo test --workspace claim_encrypted_local_records_are_not_plaintext` | PASS (1) |
+| `chosen-capture` | `cargo test --workspace claim_capture_requires_explicit_command_or_stdin` | PASS (1) |
+| `no-upload-path` | `cargo test --workspace claim_no_upload_path_is_present` | PASS (1) |
 | `verified-installers` | `npm run test:installers` | PASS |
 
-The declared claim tests pass, but the unlisted-claim defect remains.
+Before `npm ci`, Playwright was unavailable in the clean checkout; after the
+documented install, no claim assertion failed.
 
-## Local quality gates
+## Positive verification evidence
 
-`npm ci`, `npm test` (8/8), `npm run typecheck`, `npm run lint` (including `clippy -D warnings`), `cargo test --workspace` (6/6), `npm run build`, and `cargo package -p terminal-recall --allow-dirty --no-verify` all passed. `dist/site` contains 9,206 B JS (3,980 B gzip), 6,605 B CSS (2,140 B gzip), and a 153,336 B hero WebP, within budget.
-
-## CLI, package, installer, and release evidence
-
-I unpacked `terminal-recall-0.1.2.crate`, installed it into an empty consumer root, and exercised the public binary. `--help` and `--version` worked. A selected 10,000-line command was encrypted at rest (neither marker nor credential appeared in store bytes); search retrieved line 5,000 in **4 ms**, below the five-second brief target. Stdin capture, JSON list/search, bounded export, `expire --days 0`, invalid-ID recovery (exit 2 plus help), and demo were exercised.
-
-The published v0.1.2 Linux archive verified against published `SHA256SUMS`; `latest.json` parsed and lists Linux, Windows, macOS arm64, and macOS x86_64 archives. The live `install.sh`, run with an isolated temporary HOME, downloaded, verified, installed, and ran `terminal-recall 0.1.2`.
-
-## Live deployment and browser evidence
-
-Live `index.html`, hashed JavaScript, and `sw.js` are byte-identical to a fresh candidate build. v0.1.2 resolves to `aca971d439d61bce5ae6f3768f11b6a1dee6ea85`, an ancestor of the candidate; candidate-only changes are docs, metadata, and tests, not runtime code.
-
-Desktop and 390px mobile had no horizontal overflow, console errors, or page errors. Live Axe Playwright scans found **0 serious/critical** violations. A focused input had a visible 3px coral outline. Demo export/reset/Start for real worked. Reduced-motion mode had 0 animations and a 0s hero transition. After service-worker control, live `/demo` reloaded offline. Responses have HTTPS, CSP, `X-Content-Type-Options`, strict-origin referrer policy, and immutable one-year cache headers on hashed JS. There are no application API or sign-in endpoints, so rate-limit and Entra checks are not applicable.
+* `npm test` passed 8/8. Rust tests passed 6/6. Typecheck, lint, production
+  build, and `cargo package -p terminal-recall --allow-dirty --no-verify` passed.
+* Fresh output: 9,206 B JS (3,980 gzip), 6,605 B CSS (2,140 gzip), and 153,336 B
+  hero WebP, all within budget.
+* A clean `cargo install --path cli --root <temporary directory>` produced a
+  working 0.1.2 binary and demo. Explicit stdin capture, JSON search/list,
+  encrypted-at-rest validation, bounded redacted export, expiry, invalid-ID
+  recovery, delete, and demo were exercised. A 10,000-line record found line
+  5,000 in **4 ms**.
+* v0.1.2 includes Linux tarball/.deb/.rpm, Windows zip, both macOS tarballs/.pkg,
+  SHA256SUMS, and `latest.json`. The Linux archive passed `sha256sum -c`, then
+  extracted and ran. The isolated POSIX installer also downloaded, verified,
+  installed, and ran 0.1.2.
+* Live JS/CSS/hero hashes equal fresh candidate build: JS
+  `9ead2249edc907a20603b2a67a1659de35f3c20a2de097df6bfa097c77418ec1`, CSS
+  `7e601af93044519f8ca75ff91c6a20d8112d0bc5b8dc1ae41fec8d0f82db6f89`, hero
+  `b106d20744b0acffdb88c04f9c4d5ef4f22ee6b138e71497c62ee41a92dc2dd4`.
+* `verify-url.sh` passed live `/` (699 ms) and `/demo` (552 ms): title/lang/one
+  h1/main/alt/label checks and zero console/page errors. Desktop and 390px mobile
+  had no serious/critical Axe findings. The transcript is keyboard focusable;
+  reduced motion is instant. The service-worker offline claim passed.
+* Direct demo uses `demo:terminal-recall:logs`, does not create real storage, and
+  the passing network claim observes only same-origin sample requests. Headers
+  include CSP, HSTS, nosniff, strict-origin referrer policy, and immutable
+  hashed-asset caching. No sign-in, application API, or license endpoint exists,
+  so Entra and application rate-limit checks do not apply.
 
 ## Release-blocking defects
 
-### P1 — configured redaction rules are absent; export leaks a normal secret
+### P1 — configurable redaction rules are absent; export leaks a normal secret
 
-The brief requires secrets redacted by configured rules. The CLI has no configuration command, file, or option for redaction rules; only a hard-coded regex list exists. In the clean packaged-consumer test, capture line 5,000 contained:
+The brief requires redaction by configured rules. The CLI has no configuration
+command, file, or option; only hard-coded regexes. In a clean packaged-consumer
+test, `DATABASE_URL=postgres://alice:private-password@db.internal/prod` was
+written unchanged by `terminal-recall export <id> --context 0`.
 
-```text
-needle-5000 DATABASE_URL=postgres://alice:private-password@db.internal/prod
-```
+### P1 — live interactive targets miss the mandatory 44px minimum
 
-`terminal-recall export <id> --context 0` wrote that exact credential unchanged at line 5004. The API-key fixture redacts, but that does not protect user-defined/customer-data patterns. This fails the privacy/success contract.
+Fresh desktop and 390px measurements found wordmark **169×28**, skip link
+**161×40**, demo-back **241×19**, footer Privacy **55×15**, and footer Terms
+**39×15**. Axe does not measure this factory requirement.
 
-### P1 — live targets are below the mandatory 44px minimum
+### P1 — landing claims are not individually declared/proven
 
-Fresh live measurement on desktop and 390px found wordmark **169×28**, skip link **161×40**, demo back link **241×19**, footer Privacy **55×15**, and footer Terms **39×15**. Axe does not flag this criterion, but the factory accessibility baseline requires 44×44 CSS px for every interactive target.
+`Search encrypted local records.` and `Free local core.` are visitor-reliant
+landing claims without individual `.factory/claims.json` tests. Encryption alone
+does not prove search; no test proves the free-core claim.
 
-### P1 — landing claims lack individual declared sandbox tests
+### P1 — public Cargo installation instruction fails
 
-“Search encrypted local records.” and “Free local core.” are visitor-reliant landing claims but have no corresponding `.factory/claims.json` entry/test. The encryption test does not assert search behavior, and no free-core assertion is tested. The claims contract makes unlisted claims a review failure.
+The live Install section displays `cargo install terminal-recall`, but fresh
+`cargo install terminal-recall --root <temporary directory>` returned `could not
+find terminal-recall in registry crates-io`; `cargo search terminal-recall` found
+no package. The README's source command (`cargo install --path cli`) is different.
+Replace the site command with a proven release install, or publish and test it.
 
 ## Additional defects
 
-### P2 — `delete` accepts traversal outside the record directory
+### P2 — delete accepts traversal outside the store
 
-In a controlled temporary test, creating `/tmp/terminal-recall-victim.<random>.tr` and running `terminal-recall --home <temporary-store> delete ../../../terminal-recall-victim.<random>` returned 0 and deleted the file. Validate generated record IDs and constrain resolved paths to the records directory.
+In a controlled temporary test, `delete ../../../terminal-recall-victim.<random>`
+returned 0 and deleted the controlled `.tr` file outside its record directory.
 
-### P2 — unknown live routes return HTTP 200
+### P2 — unknown routes return HTTP 200
 
-`/no-such-page` renders the styled client “This record is not here” content but returns the SPA shell with HTTP 200, not the required designed 404 response. This is wrong for crawlers and direct link consumers.
+`/no-such-page` displays styled not-found content but returns SPA HTTP 200, not
+the required designed HTTP 404 response.
+
+### P3 — fresh numeric Lighthouse evidence unavailable
+
+The available Lighthouse CLI could not launch a supported Chrome instance from
+the supplied Playwright headless shell. Asset budget and functional accessibility
+evidence pass; repeat with a supported-browser mobile Lighthouse report.
 
 ## Required remediation
 
-1. Add a local, documented, testable custom-redaction mechanism; apply it before export and add a non-built-in secret claim test.
-2. Make every target at least 44×44 CSS px and re-run desktop/mobile accessibility checks.
-3. Add listed demo-observable claim tests for search and free local core, or remove/reword the claims.
-4. Validate IDs/constrain delete paths; add a traversal regression test.
-5. Serve unknown routes as the designed HTTP 404 while keeping documented deep links working.
+1. Add local, documented, testable custom redaction rules; protect a non-built-in
+   secret before export.
+2. Make every target at least 44×44 CSS px.
+3. Add individual sandbox tests for search/free-core claims or remove/reword them.
+4. Correct or publish/test the displayed Cargo installation path.
+5. Constrain delete to valid local record IDs, serve genuine HTTP 404s, and
+   re-run full verification including Lighthouse.
