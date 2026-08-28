@@ -8,7 +8,7 @@ Terminal Recall remains a Rust single-binary CLI with a Vite static landing site
 ## Repaired findings
 
 - Added documented local custom redaction rules. `terminal-recall rules add
-  '(?i)DATABASE_URL=\\S+'` writes `redaction-rules.json` beside the encrypted
+  '(?i)DATABASE_URL=\S+'` writes `redaction-rules.json` beside the encrypted
   store; every export combines it with the built-in rules. A packaged consumer
   install exported `[REDACTED]` rather than `private-password`.
 - Record paths now accept only the generated 12-character hexadecimal IDs. The
