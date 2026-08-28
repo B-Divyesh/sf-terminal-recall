@@ -1,0 +1,31 @@
+{
+  "base": "https://terminal-recall.sociobot.in",
+  "headers": {
+    "cache-control": "public, must-revalidate, max-age=30",
+    "content-encoding": "br",
+    "content-security-policy": "default-src 'self'; connect-src 'self' https://api.github.com https://api.sociobot.in; img-src 'self' blob:; style-src 'self'; script-src 'self'; worker-src 'self'",
+    "content-type": "text/html",
+    "date": "Fri, 28 Aug 2026 18:42:28 GMT",
+    "etag": "\"24264313\"",
+    "last-modified": "Fri, 28 Aug 2026 18:37:56 GMT",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "strict-transport-security": "max-age=10886400; includeSubDomains; preload",
+    "transfer-encoding": "chunked",
+    "vary": "Accept-Encoding",
+    "x-content-type-options": "nosniff",
+    "x-dns-prefetch-control": "off",
+    "x-xss-protection": "1; mode=block"
+  },
+  "identity": {
+    "assets/index-VDfVnxGg.js": "2661bc41eb5d10ba3cc5fa863b82b304387d42419cb6df9f68eaefca90fdc260",
+    "assets/index-DslM0Jad.css": "aa54bfc53e1270587a179d63eb29c7ba535b12ea865f1762d460388d917d0dd6",
+    "hero-terminal-recall.webp": "b106d20744b0acffdb88c04f9c4d5ef4f22ee6b138e71497c62ee41a92dc2dd4",
+    "sw.js": "dab544d285d2ef5a38928e1395f1c6684865b9985a3556ec45994ef0bcbcfee3"
+  },
+  "cacheNames": [
+    "terminal-recall-v3"
+  ],
+  "errors": [],
+  "mobileErrors": [],
+  "release": "v0.1.3"
+}

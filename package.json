@@ -12,6 +12,7 @@
     "lint": "npm run typecheck && cargo clippy --workspace -- -D warnings",
     "test:installers": "node tests/installer.mjs",
     "test:deployment": "node tests/deployment.mjs",
+    "test:live": "node tests/live.mjs",
     "test:cli": "cargo test",
     "preview": "vite preview"
   },
