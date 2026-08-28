@@ -53,7 +53,7 @@ npm run build
 
 Evidence recorded during this repair:
 
-- `npm test`: 7/7 Playwright tests passed, including desktop and 390px mobile
+- `npm test`: 8/8 Playwright tests passed, including desktop and 390px mobile
   axe serious/critical checks, keyboard focus for terminal output, offline reload,
   and release-link rendering.
 - `npm run typecheck`, `cargo test --workspace` (6/6), and
@@ -85,7 +85,7 @@ npm ci && npm run build:site
 ```
 
 The static deployment ID was
-`42c1fcf4-7ce2-46bd-8fd8-ccde671ff298`.
+`7489c2cf-fc54-428e-8fd8-7bf37998d997`.
 
 ## Known notes
 
