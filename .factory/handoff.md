@@ -62,9 +62,9 @@ Evidence recorded during this repair:
   hero 153,336 bytes.
 - Live Lighthouse (mobile): performance 95, accessibility 100, LCP 2.2 s, and
   CLS 0.
-- A clean consumer install built and ran `terminal-recall 0.1.1` during the
-  first release pass; final published installer verification installed and ran
-  `terminal-recall 0.1.2`. The bounded, redacted export was checked.
+- A clean consumer install built and ran `terminal-recall 0.1.2`; the final
+  published installer verification also installed and ran `terminal-recall
+  0.1.2`. The bounded, redacted export was checked.
 - `HOME=<temporary directory> sh public/install.sh` downloaded the v0.1.2
   Linux archive, verified its published checksum, installed it, and printed
   `terminal-recall 0.1.2`.
