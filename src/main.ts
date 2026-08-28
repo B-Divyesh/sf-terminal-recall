@@ -64,7 +64,7 @@ function head() {
   return page('<a class="skip" href="#main">Skip to content</a><header><a class="brand" href="/" data-route>Terminal <i>Recall</i></a><nav aria-label="Main navigation"><a href="/demo" data-route>Demo</a><a href="/#install">Install</a><a href="/privacy" data-route>Privacy</a></nav></header><div class="route-status" aria-live="polite">', document.title, '</div>');
 }
 function foot() {
-  return '<footer><p>Selected terminal output, kept close.</p><p><a href="/privacy" data-route>Privacy</a> · <a href="/terms" data-route>Terms</a> · Built by Param Factory · v0.1.2</p></footer>';
+  return '<footer><p>Selected terminal output, kept close.</p><p><a href="/privacy" data-route>Privacy</a> · <a href="/terms" data-route>Terms</a> · Built by Param Factory · v0.1.3</p></footer>';
 }
 function demoStrip() {
   return demo ? '<aside class="demo-banner"><strong>Demo — sample data, nothing is saved</strong><span><button data-reset>Reset demo</button><button data-real>Start for real</button></span></aside>' : '';

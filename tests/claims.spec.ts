@@ -45,8 +45,8 @@ test('service worker claims the page with the replacement cache version', async 
   await page.reload();
   await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
   const cacheNames = await page.evaluate(() => caches.keys());
-  expect(cacheNames).toContain('terminal-recall-v2');
-  expect(cacheNames).not.toContain('terminal-recall-v1');
+  expect(cacheNames).toContain('terminal-recall-v3');
+  expect(cacheNames).not.toContain('terminal-recall-v2');
   await context.close();
 });
 

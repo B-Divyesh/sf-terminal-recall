@@ -114,7 +114,7 @@ The product has no account or paid feature. See `/privacy` and `/terms`.
 
 ## Release and deployment
 
-Tag `v0.1.2` to run [.github/workflows/release.yml](.github/workflows/release.yml).
+Tag `v0.1.3` to run [.github/workflows/release.yml](.github/workflows/release.yml).
 It publishes Linux, Windows, and macOS archives, Linux `.deb`/RPM packages,
 macOS `.pkg` files, checksums, a manifest, and package-manager metadata. The
 static site is deployed with `npm ci && npm run build:site` from `dist/site`.

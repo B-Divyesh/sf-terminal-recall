@@ -1,4 +1,4 @@
-const CACHE = 'terminal-recall-v2';
+const CACHE = 'terminal-recall-v3';
 const ASSETS = ['/', '/demo', '/privacy', '/terms', '/hero-terminal-recall.webp', '/favicon.svg'];
 
 self.addEventListener('install', event => {

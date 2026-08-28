@@ -18,6 +18,21 @@ use std::{
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use uuid::Uuid;
 
+const MAX_RETENTION_DAYS: i64 = i64::MAX / 86_400;
+
+fn parse_retention_days(value: &str) -> std::result::Result<i64, String> {
+    let days = value
+        .parse::<i64>()
+        .map_err(|_| "days must be a whole number of zero or greater".to_string())?;
+    if days < 0 {
+        return Err("days must be zero or greater".to_string());
+    }
+    if days > MAX_RETENTION_DAYS {
+        return Err(format!("days must not exceed {MAX_RETENTION_DAYS}"));
+    }
+    Ok(days)
+}
+
 #[derive(Parser)]
 #[command(
     name = "terminal-recall",
@@ -65,7 +80,7 @@ enum Commands {
     },
     /// Remove records older than this many days
     Expire {
-        #[arg(long, default_value_t = 30)]
+        #[arg(long, default_value_t = 30, value_parser = parse_retention_days)]
         days: i64,
     },
     /// Delete one record by id
