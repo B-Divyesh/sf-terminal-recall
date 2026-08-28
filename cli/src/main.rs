@@ -70,12 +70,24 @@ enum Commands {
     },
     /// Delete one record by id
     Delete { id: String },
+    /// Add or inspect local regular-expression redaction rules
+    Rules {
+        #[command(subcommand)]
+        command: RuleCommands,
+    },
     /// List saved records without decrypting their content
     List,
     /// Show the local storage location and encryption-key fingerprint
     Status,
     /// Run a sample capture, search, and redacted export in a temporary directory
     Demo,
+}
+#[derive(Subcommand)]
+enum RuleCommands {
+    /// Add a regular expression that is replaced with [REDACTED] during export
+    Add { pattern: String },
+    /// Print the configured regular-expression rules
+    List,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -90,6 +102,10 @@ struct Record {
 struct Envelope {
     nonce: String,
     ciphertext: String,
+}
+#[derive(Serialize, Deserialize, Default)]
+struct RuleFile {
+    patterns: Vec<String>,
 }
 
 fn default_home() -> PathBuf {
@@ -114,6 +130,18 @@ fn key_path(home: &Path) -> PathBuf {
 }
 fn records_path(home: &Path) -> PathBuf {
     home.join("records")
+}
+fn rules_path(home: &Path) -> PathBuf {
+    home.join("redaction-rules.json")
+}
+fn valid_record_id(id: &str) -> bool {
+    id.len() == 12 && id.bytes().all(|byte| byte.is_ascii_hexdigit())
+}
+fn record_path(home: &Path, id: &str) -> Result<PathBuf> {
+    if !valid_record_id(id) {
+        bail!("record id must be the 12-character hexadecimal id shown by list")
+    }
+    Ok(records_path(home).join(format!("{id}.tr")))
 }
 fn prepare(home: &Path) -> Result<Vec<u8>> {
     fs::create_dir_all(records_path(home)).context("cannot create local record folder")?;
@@ -155,15 +183,12 @@ fn decrypt(key: &[u8], e: &Envelope) -> Result<Vec<u8>> {
 }
 fn save(home: &Path, key: &[u8], r: &Record) -> Result<()> {
     let e = crypt(key, &serde_json::to_vec(r)?)?;
-    fs::write(
-        records_path(home).join(format!("{}.tr", r.id)),
-        serde_json::to_vec(&e)?,
-    )?;
+    fs::write(record_path(home, &r.id)?, serde_json::to_vec(&e)?)?;
     Ok(())
 }
 fn load(home: &Path, key: &[u8], id: &str) -> Result<Record> {
-    let b = fs::read(records_path(home).join(format!("{id}.tr")))
-        .with_context(|| format!("record {id} was not found"))?;
+    let b =
+        fs::read(record_path(home, id)?).with_context(|| format!("record {id} was not found"))?;
     let e: Envelope = serde_json::from_slice(&b)?;
     Ok(serde_json::from_slice(&decrypt(key, &e)?)?)
 }
@@ -180,19 +205,36 @@ fn all(home: &Path, key: &[u8]) -> Result<Vec<Record>> {
     out.sort_by(|a, b| b.created_at.cmp(&a.created_at));
     Ok(out)
 }
-fn redact(s: &str) -> String {
-    let patterns = [
+fn built_in_rule_patterns() -> &'static [&'static str] {
+    &[
         r"(?i)(api[_-]?key|token|password|secret)\s*[=:]\s*[^\s]+",
         r"\b(?:sk|ghp)_[A-Za-z0-9_-]{12,}\b",
         r"\bAKIA[0-9A-Z]{16}\b",
         r"(?i)bearer\s+[A-Za-z0-9._-]{12,}",
-    ];
+    ]
+}
+fn redaction_rules(home: &Path) -> Result<Vec<Regex>> {
+    let mut patterns = built_in_rule_patterns()
+        .iter()
+        .map(|pattern| pattern.to_string())
+        .collect::<Vec<_>>();
+    let path = rules_path(home);
+    if path.exists() {
+        let rules: RuleFile = serde_json::from_slice(&fs::read(&path)?)
+            .with_context(|| format!("cannot read {}", path.display()))?;
+        patterns.extend(rules.patterns);
+    }
+    patterns
+        .into_iter()
+        .map(|pattern| {
+            Regex::new(&pattern).with_context(|| format!("invalid redaction rule: {pattern}"))
+        })
+        .collect()
+}
+fn redact(s: &str, patterns: &[Regex]) -> String {
     let mut x = s.to_string();
     for p in patterns {
-        x = Regex::new(p)
-            .unwrap()
-            .replace_all(&x, "[REDACTED]")
-            .to_string();
+        x = p.replace_all(&x, "[REDACTED]").to_string();
     }
     x
 }
@@ -204,6 +246,28 @@ fn excerpt(s: &str, context: usize) -> String {
         .take(context.saturating_mul(2).saturating_add(1))
         .collect::<Vec<_>>()
         .join("\n")
+}
+fn write_export(home: &Path, key: &[u8], id: &str, output: &Path, context: usize) -> Result<()> {
+    let record = load(home, key, id)?;
+    let rules = redaction_rules(home)?;
+    fs::write(
+        output,
+        format!(
+            "# Terminal Recall excerpt\n# Record: {}\n# Captured: {}\n\n{}\n",
+            record.id,
+            record.created_at,
+            redact(&excerpt(&record.output, context), &rules)
+        ),
+    )?;
+    Ok(())
+}
+fn delete_record(home: &Path, id: &str) -> Result<()> {
+    let path = record_path(home, id)?;
+    if !path.exists() {
+        bail!("record {id} was not found")
+    }
+    fs::remove_file(path)?;
+    Ok(())
 }
 fn now() -> String {
     OffsetDateTime::now_utc().format(&Rfc3339).unwrap()
@@ -306,16 +370,7 @@ fn main_result() -> Result<i32> {
             output,
             context,
         } => {
-            let r = load(&home, &key, &id)?;
-            fs::write(
-                &output,
-                format!(
-                    "# Terminal Recall excerpt\n# Record: {}\n# Captured: {}\n\n{}\n",
-                    r.id,
-                    r.created_at,
-                    redact(&excerpt(&r.output, context))
-                ),
-            )?;
+            write_export(&home, &key, &id, &output, context)?;
             if cli.json {
                 print_json(&serde_json::json!({"output":output,"redacted":true,"context":context}))?
             } else {
@@ -329,7 +384,7 @@ fn main_result() -> Result<i32> {
             for r in all(&home, &key)? {
                 let t = OffsetDateTime::parse(&r.created_at, &Rfc3339)?;
                 if t < cutoff {
-                    fs::remove_file(records_path(&home).join(format!("{}.tr", r.id)))?;
+                    fs::remove_file(record_path(&home, &r.id)?)?;
                     n += 1;
                 }
             }
@@ -337,14 +392,47 @@ fn main_result() -> Result<i32> {
             Ok(0)
         }
         Commands::Delete { id } => {
-            let p = records_path(&home).join(format!("{id}.tr"));
-            if !p.exists() {
-                bail!("record {id} was not found")
-            };
-            fs::remove_file(p)?;
+            delete_record(&home, &id)?;
             println!("Deleted record {id}.");
             Ok(0)
         }
+        Commands::Rules { command } => match command {
+            RuleCommands::Add { pattern } => {
+                Regex::new(&pattern)
+                    .with_context(|| format!("invalid redaction rule: {pattern}"))?;
+                let path = rules_path(&home);
+                let mut rules = if path.exists() {
+                    serde_json::from_slice::<RuleFile>(&fs::read(&path)?)
+                        .with_context(|| format!("cannot read {}", path.display()))?
+                } else {
+                    RuleFile::default()
+                };
+                if !rules.patterns.contains(&pattern) {
+                    rules.patterns.push(pattern);
+                    fs::write(&path, serde_json::to_vec_pretty(&rules)?)?;
+                }
+                println!("Saved local redaction rule in {}.", path.display());
+                Ok(0)
+            }
+            RuleCommands::List => {
+                let path = rules_path(&home);
+                let rules = if path.exists() {
+                    serde_json::from_slice::<RuleFile>(&fs::read(&path)?)?
+                } else {
+                    RuleFile::default()
+                };
+                if cli.json {
+                    print_json(&rules.patterns)?;
+                } else if rules.patterns.is_empty() {
+                    println!("No custom rules. Built-in API-key, token, password, secret, and bearer rules still apply.");
+                } else {
+                    for pattern in rules.patterns {
+                        println!("{pattern}");
+                    }
+                }
+                Ok(0)
+            }
+        },
         Commands::List => {
             let xs = all(&home, &key)?;
             if cli.json {
@@ -372,10 +460,10 @@ fn main_result() -> Result<i32> {
         Commands::Demo => {
             let d = std::env::temp_dir().join(format!("terminal-recall-demo-{}", Uuid::new_v4()));
             let k = prepare(&d)?;
-            let r=Record{id:"demo0001".into(),created_at:now(),label:"deploy smoke test".into(),command:Some(vec!["./deploy-check".into()]),output:"checking api… ok\nAPI_KEY=sk_demo_0123456789abcdefghijklmnop\ndeploy finished\n".into()};
+            let r=Record{id:"de0d00000001".into(),created_at:now(),label:"deploy smoke test".into(),command:Some(vec!["./deploy-check".into()]),output:"checking api… ok\nAPI_KEY=sk_demo_0123456789abcdefghijklmnop\ndeploy finished\n".into()};
             save(&d, &k, &r)?;
             let o = d.join("redacted-excerpt.txt");
-            fs::write(&o, redact(&r.output))?;
+            fs::write(&o, redact(&r.output, &redaction_rules(&d)?))?;
             println!("Demo record saved in {}\nSearch: terminal-recall --home {} search deploy\nRedacted export: {}",d.display(),d.display(),o.display());
             Ok(0)
         }
@@ -397,8 +485,12 @@ mod tests {
 
     #[test]
     fn redacts_key_patterns() {
-        assert_eq!(redact("API_KEY=sk_abcdefghijklmnopqrstu"), "[REDACTED]");
-        assert_eq!(redact("Bearer abcdefghijklmnop"), "[REDACTED]");
+        let rules = redaction_rules(tempfile::tempdir().unwrap().path()).unwrap();
+        assert_eq!(
+            redact("API_KEY=sk_abcdefghijklmnopqrstu", &rules),
+            "[REDACTED]"
+        );
+        assert_eq!(redact("Bearer abcdefghijklmnop", &rules), "[REDACTED]");
     }
 
     #[test]
@@ -414,17 +506,17 @@ mod tests {
         let directory = tempfile::tempdir().unwrap();
         let key = prepare(directory.path()).unwrap();
         let record = Record {
-            id: "claimrecord".into(),
+            id: "c1a1c1a1c1a1".into(),
             created_at: now(),
             label: "claim".into(),
             command: None,
             output: "API_KEY=not-plain-on-disk".into(),
         };
         save(directory.path(), &key, &record).unwrap();
-        let bytes = fs::read(records_path(directory.path()).join("claimrecord.tr")).unwrap();
+        let bytes = fs::read(records_path(directory.path()).join("c1a1c1a1c1a1.tr")).unwrap();
         assert!(!String::from_utf8_lossy(&bytes).contains("not-plain-on-disk"));
         assert_eq!(
-            load(directory.path(), &key, "claimrecord").unwrap().output,
+            load(directory.path(), &key, "c1a1c1a1c1a1").unwrap().output,
             record.output
         );
     }
@@ -461,5 +553,81 @@ mod tests {
             "one\ntwo\nthree\nfour\nfive"
         );
         assert_eq!(excerpt("one\ntwo", 0), "one\ntwo");
+    }
+
+    #[test]
+    fn claim_custom_redaction_rules_protect_database_urls_before_export() {
+        let directory = tempfile::tempdir().unwrap();
+        let key = prepare(directory.path()).unwrap();
+        let record = Record {
+            id: "daba5e000001".into(),
+            created_at: now(),
+            label: "database check".into(),
+            command: None,
+            output: "DATABASE_URL=postgres://alice:private-password@db.internal/prod".into(),
+        };
+        save(directory.path(), &key, &record).unwrap();
+        fs::write(
+            rules_path(directory.path()),
+            r#"{"patterns":["(?i)DATABASE_URL=\\S+"]}"#,
+        )
+        .unwrap();
+        let export = directory.path().join("excerpt.txt");
+        write_export(directory.path(), &key, &record.id, &export, 0).unwrap();
+        let text = fs::read_to_string(export).unwrap();
+        assert!(text.contains("[REDACTED]"));
+        assert!(!text.contains("private-password"));
+    }
+
+    #[test]
+    fn delete_rejects_record_path_traversal() {
+        let directory = tempfile::tempdir().unwrap();
+        prepare(directory.path()).unwrap();
+        let victim = directory
+            .path()
+            .parent()
+            .unwrap()
+            .join("terminal-recall-victim.tr");
+        fs::write(&victim, "controlled file").unwrap();
+        assert!(delete_record(directory.path(), "../../../terminal-recall-victim").is_err());
+        assert!(victim.exists());
+        fs::remove_file(victim).unwrap();
+    }
+
+    #[test]
+    fn claim_search_encrypted_local_records_returns_saved_match() {
+        let directory = tempfile::tempdir().unwrap();
+        let key = prepare(directory.path()).unwrap();
+        let record = Record {
+            id: "5ea4c4ed0001".into(),
+            created_at: now(),
+            label: "migration".into(),
+            command: None,
+            output: "checking schema\nmigration checkpoint reached\ndone".into(),
+        };
+        save(directory.path(), &key, &record).unwrap();
+        let found = all(directory.path(), &key)
+            .unwrap()
+            .into_iter()
+            .flat_map(|saved| saved.output.lines().map(str::to_string).collect::<Vec<_>>())
+            .any(|line| line.to_lowercase().contains("checkpoint"));
+        assert!(found);
+    }
+
+    #[test]
+    fn claim_free_local_core_requires_no_account_or_payment() {
+        let source = include_str!("main.rs")
+            .split("#[cfg(test)]")
+            .next()
+            .unwrap();
+        for forbidden in ["checkout", "license", "Authorization", "reqwest"] {
+            assert!(
+                !source.contains(forbidden),
+                "unexpected paid or account path: {forbidden}"
+            );
+        }
+        assert!(source.contains("Commands::Capture"));
+        assert!(source.contains("Commands::Search"));
+        assert!(source.contains("Commands::Export"));
     }
 }

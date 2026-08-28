@@ -84,3 +84,34 @@ test('390px mobile has no serious or critical accessibility violations and trans
   expect(results.violations.filter(item => ['serious', 'critical'].includes(item.impact || ''))).toEqual([]);
   await context.close();
 });
+
+test('all visible landing links and controls meet the 44px touch-target minimum', async ({ page }) => {
+  await page.goto('/');
+  const undersized = await page.locator('a:visible, button:visible, input:visible').evaluateAll(elements =>
+    elements.map(element => {
+      const rect = element.getBoundingClientRect();
+      return { name: (element.textContent || element.getAttribute('aria-label') || '').trim(), width: rect.width, height: rect.height };
+    }).filter(target => target.width < 44 || target.height < 44),
+  );
+  expect(undersized).toEqual([]);
+});
+
+test('390px landing links and controls meet the 44px touch-target minimum', async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const page = await context.newPage();
+  await page.goto('/');
+  const undersized = await page.locator('a:visible, button:visible, input:visible').evaluateAll(elements =>
+    elements.map(element => {
+      const rect = element.getBoundingClientRect();
+      return { name: (element.textContent || element.getAttribute('aria-label') || '').trim(), width: rect.width, height: rect.height };
+    }).filter(target => target.width < 44 || target.height < 44),
+  );
+  expect(undersized).toEqual([]);
+  await context.close();
+});
+
+test('landing only recommends the published release installer, not crates.io', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('.install')).not.toContainText('cargo install terminal-recall');
+  await expect(page.locator('.install')).toContainText('curl -fsSL https://terminal-recall.sociobot.in/install.sh | sh');
+});

@@ -1,1 +1,1 @@
-:root{--coral:#b93732}.demo-banner button{min-height:44px;padding:7px 10px}
+:root{--coral:#b93732}.demo-banner button{min-height:44px;padding:7px 10px}.brand{min-height:44px;display:inline-flex;align-items:center}.skip{min-height:44px;display:flex;align-items:center}.route-status{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}a{display:inline-flex;align-items:center;min-width:44px;min-height:44px}footer{align-items:center}

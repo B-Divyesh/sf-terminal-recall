@@ -53,6 +53,22 @@ terminal-recall export RECORD_ID --output incident-excerpt.txt --context 2
 `export --context N` writes the first `2N + 1` lines as a bounded excerpt.
 Use `--context 0` only when you deliberately need the full record.
 
+## Add local redaction rules
+
+Built-in export rules replace common API keys, tokens, passwords, and bearer
+tokens. Add a rule for secrets that are specific to your environment before
+exporting. Rules stay in your local record folder and are never uploaded:
+
+```sh
+terminal-recall rules add '(?i)DATABASE_URL=\S+'
+terminal-recall rules list
+```
+
+For example, the rule above replaces a full `DATABASE_URL=...` credential with
+`[REDACTED]` in every future export. You can also edit the local
+`redaction-rules.json` file shown beside the encrypted records by
+`terminal-recall status`.
+
 Pipe output when wrapping is not convenient:
 
 ```sh
