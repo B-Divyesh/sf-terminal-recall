@@ -1,0 +1,5 @@
+[
+  {"id":"demo-private","claim":"Demo data is separate from real local records.","where":"Demo banner","test":"npm test -- --grep @claim:demo-private","sandbox":"Fresh browser context at /demo; inspect localStorage."},
+  {"id":"redacted-export","claim":"Exported excerpts replace configured API keys.","where":"Demo export button, README","test":"npm test -- --grep @claim:redacted-export","sandbox":"Fresh /demo; download an exported sample excerpt."},
+  {"id":"offline-demo","claim":"The sample demo opens offline after the first visit.","where":"README","test":"npm test -- --grep @claim:offline-demo","sandbox":"Fresh browser context visits /demo then goes offline and reloads."}
+]

@@ -1,0 +1,20 @@
+{
+  "name": "terminal-recall-site",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build:site": "vite build",
+    "build": "npm run build:site && cargo build --release",
+    "test": "playwright test",
+    "test:cli": "cargo test",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
+    "@playwright/test": "1.58.2",
+    "typescript": "~5.7.2",
+    "vite": "~6.1.0"
+  }
+}

@@ -1,0 +1,55 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            name: terminal-recall-linux-x86_64
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            name: terminal-recall-windows-x86_64
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            name: terminal-recall-macos-arm64
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            name: terminal-recall-macos-x86_64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with: { targets: ${{ matrix.target }} }
+      - run: cargo build --release --target ${{ matrix.target }} -p terminal-recall
+      - shell: bash
+        run: |
+          mkdir out
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            cp target/${{ matrix.target }}/release/terminal-recall.exe out/
+            cd out && 7z a ../${{ matrix.name }}.zip terminal-recall.exe
+          else
+            cp target/${{ matrix.target }}/release/terminal-recall out/
+            tar -czf ${{ matrix.name }}.tar.gz -C out terminal-recall
+          fi
+      - uses: actions/upload-artifact@v4
+        with: { name: ${{ matrix.name }}, path: terminal-recall-* }
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { path: release }
+      - run: |
+          find release -type f -maxdepth 2 -exec cp {} . \;
+          sha256sum terminal-recall-* > SHA256SUMS
+          printf '{"version":"%s","assets":{"linux":"terminal-recall-linux-x86_64.tar.gz","windows":"terminal-recall-windows-x86_64.zip","macos_arm64":"terminal-recall-macos-arm64.tar.gz","macos_x86_64":"terminal-recall-macos-x86_64.tar.gz"}}\n' "${GITHUB_REF_NAME#v}" > latest.json
+      - uses: softprops/action-gh-release@v2
+        with: { files: "terminal-recall-*\nSHA256SUMS\nlatest.json" }

@@ -1,0 +1,9 @@
+PackageIdentifier: ParamFactory.TerminalRecall
+PackageVersion: 0.1.0
+PackageLocale: en-US
+Publisher: Param Factory
+PackageName: Terminal Recall
+ShortDescription: Keep selected terminal output searchable and local.
+License: MIT
+ManifestType: defaultLocale
+ManifestVersion: 1.6.0

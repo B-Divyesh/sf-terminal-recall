@@ -1,0 +1,3 @@
+checking api… ok
+API_KEY=sk_demo_0123456789abcdefghijklmnop
+deploy finished
