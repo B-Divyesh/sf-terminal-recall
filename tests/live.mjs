@@ -57,6 +57,7 @@ assert.equal(sha256(linuxArchive), expectedLinuxHash, 'published Linux archive d
 const releaseManifest = await (await fetch(releaseAsset('latest.json').browser_download_url)).json();
 assert.equal(releaseManifest.version, '0.1.4');
 for (const platform of ['linux', 'windows', 'macos_arm64', 'macos_x86_64']) assert.ok(releaseManifest.assets[platform]);
+console.log('live: release assets and checksum passed');
 
 const browser = await chromium.launch();
 const context = await browser.newContext({ viewport: { width: 1366, height: 900 } });
@@ -78,6 +79,7 @@ assert.deepEqual(await seriousAxeFindings(page), []);
 assert.deepEqual(await undersizedTargets(page), []);
 assert.deepEqual([...origins].sort(), [new URL(base).origin, 'https://api.github.com'].sort());
 await page.screenshot({ path: `${evidence}/live-desktop.png`, fullPage: true });
+console.log('live: home passed');
 
 await page.keyboard.press('Tab');
 assert.equal(await page.evaluate(() => document.activeElement?.classList.contains('skip')), true);
@@ -101,6 +103,7 @@ assert.doesNotMatch(excerpt, /sk_demo_/);
 assert.deepEqual([...demoOrigins], []);
 assert.deepEqual(await seriousAxeFindings(page), []);
 await page.screenshot({ path: `${evidence}/live-demo-desktop.png`, fullPage: true });
+console.log('live: demo passed');
 
 await page.goBack();
 await page.waitForURL(url => url.pathname === '/' && !url.searchParams.has('demo'));
@@ -122,6 +125,27 @@ await page.reload();
 assert.equal(await page.getByRole('heading', { name: 'Search the sample deploy record' }).isVisible(), true);
 await context.setOffline(false);
 assert.deepEqual(errors, []);
+console.log('live: history and offline passed');
+
+for (const [route, title] of [['/privacy', 'Privacy — Terminal Recall'], ['/terms', 'Terms — Terminal Recall']]) {
+  const legalPage = await context.newPage();
+  const legalErrors = [];
+  legalPage.on('console', message => { if (message.type() === 'error') legalErrors.push(message.text()); });
+  legalPage.on('pageerror', error => legalErrors.push(String(error)));
+  const legalResponse = await legalPage.goto(`${base}${route}`, { waitUntil: 'networkidle' });
+  assert.equal(legalResponse.status(), 200);
+  assert.equal(await legalPage.title(), title);
+  assert.equal(await legalPage.locator('h1').count(), 1);
+  assert.equal(await legalPage.locator('header').count(), 1);
+  assert.equal(await legalPage.locator('main').count(), 1);
+  assert.equal(await legalPage.locator('footer').count(), 1);
+  assert.equal(await legalPage.locator('link[rel="canonical"]').getAttribute('href'), `${base}${route}`);
+  assert.equal(await legalPage.locator('meta[property="og:url"]').getAttribute('content'), `${base}${route}`);
+  assert.deepEqual(await seriousAxeFindings(legalPage), []);
+  assert.deepEqual(legalErrors, []);
+  await legalPage.close();
+}
+console.log('live: legal routes passed');
 
 const mobile = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
 const mobilePage = await mobile.newPage();
@@ -138,6 +162,7 @@ assert.equal(await transcript.evaluate(element => element === document.activeEle
 await mobilePage.keyboard.press('ArrowDown');
 await mobilePage.screenshot({ path: `${evidence}/live-mobile-390.png`, fullPage: true });
 assert.deepEqual(mobileErrors, []);
+console.log('live: mobile passed');
 
 const missingPage = await context.newPage();
 const missingResponse = await missingPage.goto(`${base}/missing-live-review-route`, { waitUntil: 'networkidle' });
@@ -151,6 +176,7 @@ assert.ok(await missingPage.locator('meta[property="og:image"]').getAttribute('c
 assert.deepEqual(await undersizedTargets(missingPage), []);
 assert.deepEqual(await seriousAxeFindings(missingPage), []);
 await missingPage.screenshot({ path: `${evidence}/live-404-mobile.png`, fullPage: true });
+console.log('live: 404 passed');
 
 await context.close();
 await mobile.close();
