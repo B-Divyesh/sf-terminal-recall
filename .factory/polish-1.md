@@ -43,7 +43,7 @@ Every review finding is closed below. Screenshot evidence is under
 
 ## Cross-cutting verification
 
-- Every one of the 18 exact commands in `.factory/claims.json` passed from a
+- Every one of the 19 exact commands in `.factory/claims.json` passed from a
   fresh local clone.
 - `npm test` passes 22 browser, behavior, metadata, mobile, and Axe tests.
 - `npm run test:installers`, `npm run test:recording`, `npm run test:deployment`,
