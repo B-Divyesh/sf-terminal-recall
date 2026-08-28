@@ -1,4 +1,34 @@
-# Terminal Recall repair handoff
+# Terminal Recall verification handoff
+
+## Current independent result
+
+**PASS — candidate `00a8cecd3465fcfe9535db9b0f82f1cb044131cb` was independently
+accepted at <https://terminal-recall.sociobot.in> on 2026-08-28 UTC.**
+
+The full report is [`.factory/verification-4.md`](verification-4.md). The
+verification ran every required claim test from a clean install; all 12 pass.
+It also passed the complete browser suite (11 tests), lint/type checks, Rust
+tests, exact production build, packaged-consumer CLI exercise, published Linux
+release checksum, live deployment identity, browser privacy request log,
+offline PWA reload, 390 px mobile, keyboard/reduced-motion checks, and Axe
+serious/critical checks. No P0–P3 defects remain.
+
+Reproduce the main checks with:
+
+```sh
+npm ci
+npm test
+npm run lint
+cargo test --workspace
+npm run test:deployment
+npm run build
+npm run test:live
+cargo package -p terminal-recall --allow-dirty --no-verify
+```
+
+Known non-blocking notes: `npm ci` reports two transitive audit advisories;
+Windows/macOS release binaries are unsigned as disclosed; winget manifests are
+ready for owner submission. The historical repair notes below remain as context.
 
 ## Result
 
