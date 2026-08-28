@@ -1,0 +1,1 @@
+Save chosen terminal output locally, search it later, and export redacted excerpts.

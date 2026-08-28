@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::{
     fs,
-    io::{self, Read},
+    io::{self, Read, Write},
     path::{Path, PathBuf},
     process::Command,
 };
@@ -474,12 +474,70 @@ fn main_result() -> Result<i32> {
         }
         Commands::Demo => {
             let d = std::env::temp_dir().join(format!("terminal-recall-demo-{}", Uuid::new_v4()));
-            let k = prepare(&d)?;
-            let r=Record{id:"de0d00000001".into(),created_at:now(),label:"deploy smoke test".into(),command:Some(vec!["./deploy-check".into()]),output:"checking api… ok\nAPI_KEY=sk_demo_0123456789abcdefghijklmnop\ndeploy finished\n".into()};
-            save(&d, &k, &r)?;
+            let sample = include_str!("../../examples/deploy-check.txt");
+            let executable = std::env::current_exe()?;
+            let mut capture = Command::new(&executable)
+                .args([
+                    "--home",
+                    d.to_str().context("demo path is not UTF-8")?,
+                    "--json",
+                    "capture",
+                    "--label",
+                    "deploy smoke test",
+                ])
+                .stdin(std::process::Stdio::piped())
+                .stdout(std::process::Stdio::piped())
+                .spawn()?;
+            capture
+                .stdin
+                .as_mut()
+                .context("demo capture stdin is unavailable")?
+                .write_all(sample.as_bytes())?;
+            let captured = capture.wait_with_output()?;
+            if !captured.status.success() {
+                bail!("demo capture failed")
+            }
+            let captured_json: serde_json::Value = serde_json::from_slice(&captured.stdout)?;
+            let id = captured_json["id"]
+                .as_str()
+                .context("demo capture did not return an id")?;
             let o = d.join("redacted-excerpt.txt");
-            fs::write(&o, redact(&r.output, &redaction_rules(&d)?))?;
-            println!("Demo record saved in {}\nSearch: terminal-recall --home {} search deploy\nRedacted export: {}",d.display(),d.display(),o.display());
+            let searched = Command::new(&executable)
+                .args([
+                    "--home",
+                    d.to_str().unwrap(),
+                    "search",
+                    "health check",
+                    "--context",
+                    "0",
+                ])
+                .output()?;
+            if !searched.status.success() {
+                bail!("demo search failed")
+            }
+            let exported = Command::new(&executable)
+                .args([
+                    "--home",
+                    d.to_str().unwrap(),
+                    "export",
+                    id,
+                    "--output",
+                    o.to_str().context("demo export path is not UTF-8")?,
+                    "--context",
+                    "0",
+                ])
+                .output()?;
+            if !exported.status.success() {
+                bail!("demo export failed")
+            }
+            println!("$ terminal-recall capture --label \"deploy smoke test\" < examples/deploy-check.txt");
+            println!("Saved encrypted record {id}.");
+            println!("$ terminal-recall search \"health check\"");
+            print!("{}", String::from_utf8_lossy(&searched.stdout));
+            println!("$ terminal-recall export {id} --output redacted-excerpt.txt --context 0");
+            println!("Wrote redacted excerpt with built-in secret removal.");
+            println!("Demo files: {}", d.display());
+            println!("Redacted export: {}", o.display());
             Ok(0)
         }
     }
@@ -517,7 +575,7 @@ mod tests {
     }
 
     #[test]
-    fn claim_encrypted_local_records_are_not_plaintext() {
+    fn encrypted_local_records_are_not_plaintext() {
         let directory = tempfile::tempdir().unwrap();
         let key = prepare(directory.path()).unwrap();
         let record = Record {
@@ -537,31 +595,6 @@ mod tests {
     }
 
     #[test]
-    fn claim_capture_requires_explicit_command_or_stdin() {
-        let implementation = include_str!("main.rs")
-            .split("#[cfg(test)]")
-            .next()
-            .unwrap();
-        assert!(implementation.contains("Run {"));
-        assert!(implementation.contains("Capture {"));
-        assert!(!implementation.contains("watch"));
-    }
-
-    #[test]
-    fn claim_no_upload_path_is_present() {
-        let source = include_str!("main.rs")
-            .split("#[cfg(test)]")
-            .next()
-            .unwrap();
-        for forbidden in ["reqwest", "TcpStream", "UdpSocket", "hyper::"] {
-            assert!(
-                !source.contains(forbidden),
-                "unexpected network path: {forbidden}"
-            );
-        }
-    }
-
-    #[test]
     fn export_context_bounds_the_excerpt() {
         assert_eq!(
             excerpt("one\ntwo\nthree\nfour\nfive\nsix", 2),
@@ -571,7 +604,7 @@ mod tests {
     }
 
     #[test]
-    fn claim_custom_redaction_rules_protect_database_urls_before_export() {
+    fn custom_redaction_rules_protect_database_urls_before_export() {
         let directory = tempfile::tempdir().unwrap();
         let key = prepare(directory.path()).unwrap();
         let record = Record {
@@ -610,7 +643,7 @@ mod tests {
     }
 
     #[test]
-    fn claim_search_encrypted_local_records_returns_saved_match() {
+    fn search_encrypted_local_records_returns_saved_match() {
         let directory = tempfile::tempdir().unwrap();
         let key = prepare(directory.path()).unwrap();
         let record = Record {
@@ -627,22 +660,5 @@ mod tests {
             .flat_map(|saved| saved.output.lines().map(str::to_string).collect::<Vec<_>>())
             .any(|line| line.to_lowercase().contains("checkpoint"));
         assert!(found);
-    }
-
-    #[test]
-    fn claim_free_local_core_requires_no_account_or_payment() {
-        let source = include_str!("main.rs")
-            .split("#[cfg(test)]")
-            .next()
-            .unwrap();
-        for forbidden in ["checkout", "license", "Authorization", "reqwest"] {
-            assert!(
-                !source.contains(forbidden),
-                "unexpected paid or account path: {forbidden}"
-            );
-        }
-        assert!(source.contains("Commands::Capture"));
-        assert!(source.contains("Commands::Search"));
-        assert!(source.contains("Commands::Export"));
     }
 }

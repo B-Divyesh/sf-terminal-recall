@@ -9,7 +9,36 @@ permissions:
   contents: write
 
 jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm test
+      - run: npm run test:installers
+      - run: npm run test:recording
+      - run: npm run lint
+      - run: cargo test --workspace
+
+  verify-windows-installer:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm run test:installers
+
   build:
+    needs: [verify, verify-windows-installer]
     strategy:
       fail-fast: false
       matrix:

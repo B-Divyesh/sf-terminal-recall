@@ -1,14 +1,128 @@
 [
-  {"id":"demo-private","claim":"Demo data is separate from real local records and is discarded when leaving demo.","where":"Demo banner, README","test":"npm test -- --grep @claim:demo-private","sandbox":"Fresh browser context at /demo; inspect demo and real namespaces, then Start for real."},
-  {"id":"redacted-export","claim":"Exported excerpts replace configured API keys.","where":"Demo export button, README","test":"npm test -- --grep @claim:redacted-export","sandbox":"Fresh /demo; download an exported sample excerpt."},
-  {"id":"offline-demo","claim":"The sample demo opens offline after the first visit.","where":"README","test":"npm test -- --grep @claim:offline-demo","sandbox":"Fresh browser context visits /demo then goes offline and reloads."},
-  {"id":"no-demo-uploads","claim":"The browser sample makes no third-party network request.","where":"Demo copy, Privacy","test":"npm test -- --grep @claim:no-demo-uploads","sandbox":"Fresh /demo; search and export while recording every request origin."},
-  {"id":"release-download","claim":"The landing page offers the archive for the detected platform after release metadata loads.","where":"Install section","test":"npm test -- --grep @claim:release-download","sandbox":"Mocked GitHub release response with the Linux archive."},
-  {"id":"encrypted-local-records","claim":"Terminal records are encrypted on this device.","where":"Landing facts, README, Privacy","test":"cargo test --workspace claim_encrypted_local_records_are_not_plaintext","sandbox":"Temporary CLI store; assert a secret is absent from ciphertext and can be decrypted locally."},
-  {"id":"chosen-capture","claim":"Terminal Recall captures only a command or stdin you explicitly provide.","where":"Landing privacy note, README","test":"cargo test --workspace claim_capture_requires_explicit_command_or_stdin","sandbox":"CLI source regression test verifies the only capture paths are explicit run and capture commands."},
-  {"id":"no-upload-path","claim":"The CLI has no code path that uploads captured output.","where":"README, Privacy","test":"cargo test --workspace claim_no_upload_path_is_present","sandbox":"CLI source regression test rejects network client and socket APIs."},
-  {"id":"verified-installers","claim":"The POSIX and PowerShell installers verify SHA-256 before installing a binary.","where":"README","test":"npm run test:installers","sandbox":"Installer regression test requires each installer to obtain SHA256SUMS and check its selected release asset before placement."},
-  {"id":"configured-redaction","claim":"Local redaction rules replace secrets such as DATABASE_URL before export.","where":"README, CLI help","test":"cargo test --workspace claim_custom_redaction_rules_protect_database_urls_before_export","sandbox":"Temporary CLI store with a local redaction-rules.json rule; assert a database credential becomes [REDACTED]."},
-  {"id":"encrypted-search","claim":"Search encrypted local records.","where":"Landing facts","test":"cargo test --workspace claim_search_encrypted_local_records_returns_saved_match","sandbox":"Temporary encrypted CLI store; save a record and assert its known line is discoverable after local decryption."},
-  {"id":"free-local-core","claim":"Free local core.","where":"Landing facts","test":"cargo test --workspace claim_free_local_core_requires_no_account_or_payment","sandbox":"CLI source and command-surface regression test rejects account/payment paths while requiring capture, search, and export commands."}
+  {
+    "id": "demo-private",
+    "claim": "Demo data stays separate from saved records and is discarded by Start for real, Back, and Reset.",
+    "where": "Demo banner, demo copy, README",
+    "test": "npm test -- --grep @claim:demo-private",
+    "sandbox": "Fresh browser context with a real-record sentinel; enter through ?demo=1, then exercise Back, Forward, and Start for real."
+  },
+  {
+    "id": "cli-demo-recording",
+    "claim": "The self-hosted terminal recording is generated from the compiled CLI using examples/deploy-check.txt.",
+    "where": "Landing real CLI run, demo, README",
+    "test": "npm test -- --grep @claim:cli-demo-recording",
+    "sandbox": "Compile terminal-recall, run demo, normalize temporary paths, and byte-compare the generated asciinema cast."
+  },
+  {
+    "id": "redacted-export",
+    "claim": "Browser and CLI exports remove API keys, tokens, passwords, and bearer tokens from the bundled sample.",
+    "where": "Landing privacy section, demo export, README",
+    "test": "npm test -- --grep @claim:redacted-export",
+    "sandbox": "Fresh browser demo download plus public CLI capture/export in a temporary store."
+  },
+  {
+    "id": "offline-demo",
+    "claim": "The sample demo reloads offline after one successful visit.",
+    "where": "README",
+    "test": "npm test -- --grep @claim:offline-demo",
+    "sandbox": "Fresh browser context visits ?demo=1, waits for service-worker control, goes offline, and reloads."
+  },
+  {
+    "id": "no-analytics",
+    "claim": "The static site has no analytics, and demo interactions send no sample data.",
+    "where": "Privacy, README",
+    "test": "npm test -- --grep @claim:no-analytics",
+    "sandbox": "Crawl every route while logging requests; allow only same-origin files and the mocked GitHub release API."
+  },
+  {
+    "id": "release-platform-assets",
+    "claim": "The landing page selects a release archive for Linux, macOS, and Windows.",
+    "where": "Install section, README",
+    "test": "npm test -- --grep @claim:release-platform-assets",
+    "sandbox": "Fixture-backed GitHub release metadata in clean browser contexts with Linux, macOS, and Windows platform values."
+  },
+  {
+    "id": "release-artifact-set",
+    "claim": "The release workflow produces platform archives, Linux deb and RPM packages, macOS pkg files, checksums, and a manifest.",
+    "where": "README release section",
+    "test": "npm test -- --grep @claim:release-artifact-set",
+    "sandbox": "Validate the complete generated release fixture asset set."
+  },
+  {
+    "id": "verified-installer",
+    "claim": "Installers accept a valid SHA-256 fixture and reject a corrupted checksum before placement.",
+    "where": "README install section",
+    "test": "npm run test:installers",
+    "sandbox": "Fresh temporary fixture, archive, checksum, and install directory; execute the native installer on Linux and Windows CI."
+  },
+  {
+    "id": "encrypted-local-records",
+    "claim": "Terminal records are encrypted on this device and searchable with the local key.",
+    "where": "Landing facts, Privacy, README",
+    "test": "npm test -- --grep @claim:encrypted-local-records",
+    "sandbox": "Public CLI capture in a temporary store; inspect ciphertext and search through the public command."
+  },
+  {
+    "id": "chosen-capture",
+    "claim": "Terminal Recall captures only a command or stdin explicitly provided to run or capture.",
+    "where": "Landing facts and privacy section, README",
+    "test": "npm test -- --grep @claim:chosen-capture",
+    "sandbox": "Start with an empty temporary store, invoke public run and capture commands, and assert exactly those two records exist."
+  },
+  {
+    "id": "no-upload-path",
+    "claim": "The CLI sends no captured output over a network.",
+    "where": "Privacy, README",
+    "test": "npm test -- --grep @claim:no-upload-path",
+    "sandbox": "Run public capture, search, and export under an LD_PRELOAD network-syscall guard and assert no network call occurs."
+  },
+  {
+    "id": "configured-redaction",
+    "claim": "A rule added to the status-reported local rule file protects matching values during export.",
+    "where": "README redaction section",
+    "test": "npm test -- --grep @claim:configured-redaction",
+    "sandbox": "Run public status, edit its local redaction-rules.json, then capture and export through the public CLI."
+  },
+  {
+    "id": "bounded-export-context",
+    "claim": "Export context N writes at most the first 2N + 1 lines; zero writes the full record.",
+    "where": "README usage section",
+    "test": "npm test -- --grep @claim:bounded-export-context",
+    "sandbox": "Public CLI exports the same six-line record with positive, zero, and large context values."
+  },
+  {
+    "id": "status-output",
+    "claim": "Status prints the local record folder and key fingerprint.",
+    "where": "README redaction section",
+    "test": "npm test -- --grep @claim:status-output",
+    "sandbox": "Public CLI status in a fresh temporary store."
+  },
+  {
+    "id": "expire-records",
+    "claim": "Expire removes records older than the selected number of days.",
+    "where": "README usage section",
+    "test": "npm test -- --grep @claim:expire-records",
+    "sandbox": "Capture in a temporary store, expire at zero days, and assert the public list is empty."
+  },
+  {
+    "id": "delete-record",
+    "claim": "Delete removes one selected record and leaves other records.",
+    "where": "Privacy, README",
+    "test": "npm test -- --grep @claim:delete-record",
+    "sandbox": "Capture two records, delete one id, and assert the other remains."
+  },
+  {
+    "id": "lost-key-unreadable",
+    "claim": "Replacing the local key makes saved records unreadable.",
+    "where": "README usage section",
+    "test": "npm test -- --grep @claim:lost-key-unreadable",
+    "sandbox": "Capture in a temporary store, replace its 32-byte key, and assert search fails to decrypt."
+  },
+  {
+    "id": "free-no-account",
+    "claim": "Local capture, search, and export work without an account or payment.",
+    "where": "Landing facts, Privacy, README",
+    "test": "npm test -- --grep @claim:free-no-account",
+    "sandbox": "Run the complete public CLI workflow in a fresh temporary store with no account setup."
+  }
 ]

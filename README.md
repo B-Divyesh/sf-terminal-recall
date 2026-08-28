@@ -1,45 +1,44 @@
 # Terminal Recall
 
-Terminal Recall saves selected terminal output on your device. It is for developers
-and operators who need to find a command result after a session ends.
+Terminal Recall saves only commands you run through it. It encrypts and searches
+local records, then exports redacted excerpts.
 
-The local core captures a command only when you run it, encrypts records with
-AES-256-GCM beside a local key, searches them, and writes redacted text excerpts.
-It does not upload captured output.
+It is for developers and operators who need a result after a terminal session
+ends. The CLI works without an account or payment and sends no saved output over a network.
 
-Try the browser sandbox at `/demo`, or run `terminal-recall demo`.
+Try the isolated sample at <https://terminal-recall.sociobot.in/?demo=1>.
+You can also run `terminal-recall demo` with the bundled deploy sample.
 
-## Install
+## Install Terminal Recall
 
-Release assets are published for Linux, macOS, and Windows:
+The release page provides archives for Linux, macOS, and Windows:
+<https://github.com/B-Divyesh/sf-terminal-recall/releases>.
+
+On Linux or macOS:
 
 ```sh
 curl -fsSL https://terminal-recall.sociobot.in/install.sh | sh
 ```
 
+On Windows:
+
 ```powershell
 irm https://terminal-recall.sociobot.in/install.ps1 | iex
 ```
 
-Both scripts verify the published SHA-256 checksum before placing the binary on
-your PATH. Windows and macOS binaries are unsigned; on macOS use right-click →
-Open if Gatekeeper asks.
+The installers compare the downloaded archive with its published SHA-256 value.
+Check each release note for current signing information before installing.
 
-Homebrew users can install the tap:
+The repository also contains a Homebrew formula, Scoop manifest, and draft winget
+manifests. They are packaging inputs, not submitted package listings.
 
-```sh
-brew install B-Divyesh/terminal-recall/terminal-recall
-```
-
-Scoop users can add this repository as a bucket and install
-`terminal-recall`. The `winget/` folder is ready for submission to
-`microsoft/winget-pkgs`. For a source build, install Rust and run:
+For a source build, install Rust and run:
 
 ```sh
 cargo install --path cli
 ```
 
-## Use
+## Capture, search, and export records
 
 Capture only the command you choose:
 
@@ -50,73 +49,68 @@ terminal-recall list --json
 terminal-recall export RECORD_ID --output incident-excerpt.txt --context 2
 ```
 
-`export --context N` writes the first `2N + 1` lines as a bounded excerpt.
-Use `--context 0` only when you deliberately need the full record.
+`export --context N` writes at most the first `2N + 1` output lines.
+`--context 0` writes the full record.
 
 ## Add local redaction rules
 
-Built-in export rules replace common API keys, tokens, passwords, and bearer
-tokens. Add a rule for secrets that are specific to your environment before
-exporting. Rules stay in your local record folder and are never uploaded:
+Built-in export rules replace API keys, tokens, passwords, and bearer tokens.
+Add a rule for secrets specific to your environment:
 
 ```sh
 terminal-recall rules add '(?i)DATABASE_URL=\S+'
 terminal-recall rules list
 ```
 
-For example, the rule above replaces a full `DATABASE_URL=...` credential with
-`[REDACTED]` in every future export. You can also edit the local
-`redaction-rules.json` file shown beside the encrypted records by
-`terminal-recall status`.
+The rule above replaces the full `DATABASE_URL` value during later exports.
+`terminal-recall status` prints the record folder and key fingerprint.
+You may edit `redaction-rules.json` inside that folder.
 
-Pipe output when wrapping is not convenient:
+Pipe output when wrapping a command is inconvenient:
 
 ```sh
 your-command 2>&1 | terminal-recall capture --label "nightly migration"
 ```
 
-The same `run` form works from PowerShell:
-
-```powershell
-terminal-recall run -- pwsh -Command "Get-Process"
-```
-
-Records use AES-256-GCM with a local key stored beside the encrypted records.
-Use `terminal-recall status` to print that folder and its key fingerprint.
-`terminal-recall expire --days 30` removes old records; `delete RECORD_ID`
-removes one record. Losing the local key makes saved records unreadable.
+`terminal-recall expire --days 30` removes older records.
+`terminal-recall delete RECORD_ID` removes one chosen record.
+Losing or replacing the local key makes saved records unreadable.
 
 ## Develop and verify
 
-Requires Node 22+ and Rust stable.
+Use Node 22 or later and stable Rust:
 
 ```sh
 npm ci
 npm test
 npm run test:installers
+npm run test:recording
 npm run lint
 cargo test --workspace
 npm run build
 cargo package -p terminal-recall
 ```
 
-`npm run build:site` writes the static site to `dist/site` with `index.html`
-at its root. `npm run build` also builds the release CLI. `cargo package
--p terminal-recall` creates the ready-to-publish Rust crate.
+`npm run build:site` writes the static site to `dist/site`.
+`npm run build` also builds the release CLI.
 
-## Privacy and demo
+## Privacy and demo isolation
 
-The static site has no analytics. The demo uses
-`demo:terminal-recall:logs`; it never reads a real browser record. Starting for
-real discards the demo key. See [.factory/demo.md](.factory/demo.md).
+The static site has no analytics. Only the home page requests GitHub release
+metadata. The CLI sends no captured output over a network.
 
-The product has no account or paid feature. See `/privacy` and `/terms`.
+The demo uses `demo:terminal-recall:logs`.
+It never reads or changes `terminal-recall:logs`.
+Resetting or leaving the demo discards its sample data.
+The demo reloads offline after one successful visit.
+
+See [.factory/demo.md](.factory/demo.md), [/privacy](https://terminal-recall.sociobot.in/privacy),
+and [/terms](https://terminal-recall.sociobot.in/terms).
 
 ## Release and deployment
 
-Tag `v0.1.3` to run [.github/workflows/release.yml](.github/workflows/release.yml).
-It publishes Linux, Windows, and macOS archives, Linux `.deb`/RPM packages,
-macOS `.pkg` files, checksums, a manifest, and package-manager metadata. The
-static site is deployed with `npm ci && npm run build:site` from `dist/site`.
+Tag `v0.1.4` to run [.github/workflows/release.yml](.github/workflows/release.yml).
+The workflow builds platform archives, Linux packages, macOS packages, checksums,
+and release manifests.
 
-Catalog description: **Find terminal output after it disappears.**
+Deploy the static site with `npm ci && npm run build:site` from `dist/site`.

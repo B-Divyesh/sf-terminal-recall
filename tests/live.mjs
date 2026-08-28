@@ -37,7 +37,7 @@ const liveHtml = await response.text();
 const assetPattern = /assets\/index-[A-Za-z0-9_-]+\.(?:js|css)/g;
 assert.deepEqual(liveHtml.match(assetPattern)?.sort(), localHtml.match(assetPattern)?.sort());
 const identity = {};
-for (const asset of [...new Set(liveHtml.match(assetPattern) || []), 'hero-terminal-recall.webp', 'sw.js']) {
+for (const asset of [...new Set(liveHtml.match(assetPattern) || []), 'hero-terminal-recall.webp', 'terminal-recall-share.webp', 'terminal-recall-demo.cast', 'sw.js']) {
   const local = await readFile(`dist/site/${asset}`);
   const live = Buffer.from(await (await fetch(`${base}/${asset}`)).arrayBuffer());
   assert.equal(sha256(live), sha256(local), `${asset} differs from the local build`);
@@ -45,8 +45,8 @@ for (const asset of [...new Set(liveHtml.match(assetPattern) || []), 'hero-termi
 }
 
 const release = await (await fetch('https://api.github.com/repos/B-Divyesh/sf-terminal-recall/releases/latest')).json();
-assert.equal(release.tag_name, 'v0.1.3');
-for (const name of ['terminal-recall-linux-x86_64.tar.gz', 'terminal-recall-windows-x86_64.zip', 'terminal-recall-macos-arm64.tar.gz', 'terminal-recall-macos-x86_64.tar.gz', 'SHA256SUMS', 'latest.json']) {
+assert.equal(release.tag_name, 'v0.1.4');
+for (const name of ['terminal-recall-linux-x86_64.tar.gz', 'terminal-recall-windows-x86_64.zip', 'terminal-recall-macos-arm64.tar.gz', 'terminal-recall-macos-x86_64.tar.gz', 'terminal-recall-linux-x86_64.deb', 'terminal-recall-linux-x86_64.rpm', 'terminal-recall-macos-arm64.pkg', 'terminal-recall-macos-x86_64.pkg', 'SHA256SUMS', 'latest.json']) {
   assert.ok(release.assets.some(asset => asset.name === name), `release is missing ${name}`);
 }
 
@@ -59,13 +59,13 @@ page.on('console', message => { if (message.type() === 'error') errors.push(mess
 page.on('pageerror', error => errors.push(String(error)));
 page.on('request', request => origins.add(new URL(request.url()).origin));
 await page.goto(`${base}/`, { waitUntil: 'networkidle' });
-assert.equal(await page.title(), 'Terminal Recall — save terminal output');
+assert.equal(await page.title(), 'Terminal Recall — save and find terminal output');
 assert.equal(await page.locator('html').getAttribute('lang'), 'en');
 assert.equal(await page.locator('h1').count(), 1);
 assert.equal(await page.locator('main').count(), 1);
-assert.match(await page.locator('footer').innerText(), /v0\.1\.3/);
+assert.match(await page.locator('footer').innerText(), /v0\.1\.4/);
 const platformDownload = page.getByRole('link', { name: 'terminal-recall-linux-x86_64.tar.gz' });
-assert.match(await platformDownload.getAttribute('href'), /\/v0\.1\.3\/terminal-recall-linux-x86_64\.tar\.gz$/);
+assert.match(await platformDownload.getAttribute('href'), /\/v0\.1\.4\/terminal-recall-linux-x86_64\.tar\.gz$/);
 assert.deepEqual(await seriousAxeFindings(page), []);
 assert.deepEqual(await undersizedTargets(page), []);
 assert.deepEqual([...origins].sort(), [new URL(base).origin, 'https://api.github.com'].sort());
@@ -77,7 +77,7 @@ await page.keyboard.press('Enter');
 assert.equal(new URL(page.url()).hash, '#main');
 
 await page.getByRole('link', { name: 'Try it with sample data' }).click();
-await page.waitForURL(`${base}/demo`);
+await page.waitForURL(`${base}/?demo=1`);
 assert.equal(await page.locator('h1').count(), 1);
 assert.equal(await page.evaluate(() => localStorage.getItem('terminal-recall:logs')), null);
 assert.ok(await page.evaluate(() => localStorage.getItem('demo:terminal-recall:logs')));
@@ -93,12 +93,21 @@ assert.doesNotMatch(excerpt, /sk_demo_/);
 assert.deepEqual([...demoOrigins], []);
 assert.deepEqual(await seriousAxeFindings(page), []);
 
+await page.goBack();
+await page.waitForURL(`${base}/`);
+assert.equal(await page.evaluate(() => localStorage.getItem('demo:terminal-recall:logs')), null);
+assert.equal(await page.evaluate(() => document.activeElement === document.querySelector('h1')), true);
+await page.goForward();
+await page.waitForURL(`${base}/?demo=1`);
+assert.ok(await page.evaluate(() => localStorage.getItem('demo:terminal-recall:logs')));
+assert.equal(await page.evaluate(() => document.activeElement === document.querySelector('h1')), true);
+
 await page.evaluate(() => navigator.serviceWorker.ready);
 await page.reload();
 await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
 const cacheNames = await page.evaluate(() => caches.keys());
-assert.ok(cacheNames.includes('terminal-recall-v3'));
-assert.ok(!cacheNames.includes('terminal-recall-v2'));
+assert.ok(cacheNames.includes('terminal-recall-v4'));
+assert.ok(!cacheNames.includes('terminal-recall-v3'));
 await context.setOffline(true);
 await page.reload();
 assert.equal(await page.getByRole('heading', { name: 'Search the sample deploy record' }).isVisible(), true);
@@ -110,7 +119,7 @@ const mobilePage = await mobile.newPage();
 const mobileErrors = [];
 mobilePage.on('console', message => { if (message.type() === 'error') mobileErrors.push(message.text()); });
 mobilePage.on('pageerror', error => mobileErrors.push(String(error)));
-await mobilePage.goto(`${base}/demo`, { waitUntil: 'networkidle' });
+await mobilePage.goto(`${base}/?demo=1`, { waitUntil: 'networkidle' });
 assert.equal(await mobilePage.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
 assert.deepEqual(await undersizedTargets(mobilePage), []);
 assert.deepEqual(await seriousAxeFindings(mobilePage), []);
@@ -120,6 +129,18 @@ assert.equal(await transcript.evaluate(element => element === document.activeEle
 await mobilePage.keyboard.press('ArrowDown');
 await mobilePage.screenshot({ path: `${evidence}/live-mobile-390.png`, fullPage: true });
 assert.deepEqual(mobileErrors, []);
+
+const missingPage = await context.newPage();
+const missingResponse = await missingPage.goto(`${base}/missing-live-review-route`, { waitUntil: 'networkidle' });
+assert.equal(missingResponse.status(), 404);
+assert.equal(await missingPage.title(), 'Not found — Terminal Recall');
+assert.equal(await missingPage.locator('header').count(), 1);
+assert.equal(await missingPage.locator('main').count(), 1);
+assert.equal(await missingPage.locator('footer').count(), 1);
+assert.ok(await missingPage.locator('meta[name="description"]').getAttribute('content'));
+assert.ok(await missingPage.locator('meta[property="og:image"]').getAttribute('content'));
+assert.deepEqual(await undersizedTargets(missingPage), []);
+assert.deepEqual(await seriousAxeFindings(missingPage), []);
 
 await context.close();
 await mobile.close();

@@ -1,6 +1,6 @@
 {
   "responseOverrides": { "404": { "rewrite": "/404.html" } },
-  "globalHeaders": { "X-Content-Type-Options": "nosniff", "Referrer-Policy": "strict-origin-when-cross-origin", "Content-Security-Policy": "default-src 'self'; connect-src 'self' https://api.github.com https://api.sociobot.in; img-src 'self' blob:; style-src 'self'; script-src 'self'; worker-src 'self'" },
+  "globalHeaders": { "X-Content-Type-Options": "nosniff", "Referrer-Policy": "strict-origin-when-cross-origin", "Content-Security-Policy": "default-src 'self'; connect-src 'self' https://api.github.com; img-src 'self' blob:; style-src 'self'; script-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'" },
   "routes": [
     { "route": "/demo", "rewrite": "/index.html" },
     { "route": "/privacy", "rewrite": "/index.html" },

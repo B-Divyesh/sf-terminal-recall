@@ -1,0 +1,11 @@
+{"version":2,"width":96,"height":18,"timestamp":1787947200,"env":{"TERM":"xterm-256color","SHELL":"terminal-recall demo"}}
+[0,"o","$ terminal-recall capture --label \"deploy smoke test\" < examples/deploy-check.txt\r\n"]
+[0.12,"o","Saved encrypted record <record-id>.\r\n"]
+[0.24,"o","$ terminal-recall search \"health check\"\r\n"]
+[0.36,"o","\r\n"]
+[0.48,"o","<record-id> · deploy smoke test · line 8\r\n"]
+[0.6,"o","health check: 200 OK\r\n"]
+[0.72,"o","$ terminal-recall export <record-id> --output redacted-excerpt.txt --context 0\r\n"]
+[0.84,"o","Wrote redacted excerpt with built-in secret removal.\r\n"]
+[0.96,"o","Demo files: <temporary demo folder>\r\n"]
+[1.08,"o","Redacted export: <temporary demo folder>/redacted-excerpt.txt\r\n"]

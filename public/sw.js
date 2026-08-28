@@ -1,5 +1,5 @@
-const CACHE = 'terminal-recall-v3';
-const ASSETS = ['/', '/demo', '/privacy', '/terms', '/hero-terminal-recall.webp', '/favicon.svg'];
+const CACHE = 'terminal-recall-v4';
+const ASSETS = ['/', '/?demo=1', '/demo', '/privacy', '/terms', '/hero-terminal-recall.webp', '/terminal-recall-share.webp', '/terminal-recall-demo.cast', '/favicon.svg'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting()));

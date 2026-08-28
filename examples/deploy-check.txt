@@ -1,3 +1,9 @@
 checking api… ok
+reading deployment plan
 API_KEY=sk_demo_0123456789abcdefghijklmnop
+TOKEN=deploy_token_abcdefghijklmnopqrstuvwxyz
+PASSWORD=correct-horse-battery-staple
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.sampletoken12345
+migrations: 12 applied
+health check: 200 OK
 deploy finished
