@@ -25,19 +25,19 @@ if (process.platform === 'win32') {
   mkdirSync(payload);
   writeFileSync(join(payload, 'terminal-recall.exe'), 'fixture executable');
   const archive = join(fixture, 'terminal-recall-windows-x86_64.zip');
-  execFileSync('powershell', ['-NoProfile', '-Command', `Compress-Archive -Path '${join(payload, 'terminal-recall.exe')}' -DestinationPath '${archive}'`]);
+  execFileSync('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', `Compress-Archive -Path '${join(payload, 'terminal-recall.exe')}' -DestinationPath '${archive}'`]);
   writeFileSync(join(fixture, 'SHA256SUMS'), `${hash(archive)}  terminal-recall-windows-x86_64.zip\n`);
   writeFileSync(join(fixture, 'release.json'), JSON.stringify({ assets: [
     { name: 'terminal-recall-windows-x86_64.zip', browser_download_url: 'https://fixture.test/terminal-recall-windows-x86_64.zip' },
     { name: 'SHA256SUMS', browser_download_url: 'https://fixture.test/SHA256SUMS' },
   ] }));
-  const valid = spawnSync('powershell', ['-NoProfile', '-File', join(root, 'public/install.ps1')], { encoding: 'utf8', env: { ...process.env, TERMINAL_RECALL_FIXTURE_DIR: fixture, TERMINAL_RECALL_INSTALL_DIR: install } });
-  assert.equal(valid.status, 0, valid.stderr);
+  const valid = spawnSync('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', join(root, 'public/install.ps1')], { encoding: 'utf8', env: { ...process.env, TERMINAL_RECALL_FIXTURE_DIR: fixture, TERMINAL_RECALL_INSTALL_DIR: install } });
+  assert.equal(valid.status, 0, valid.stderr || valid.stdout || String(valid.error));
   assert.ok(existsSync(join(install, 'terminal-recall.exe')));
   writeFileSync(join(fixture, 'SHA256SUMS'), `${'0'.repeat(64)}  terminal-recall-windows-x86_64.zip\n`);
-  const invalid = spawnSync('powershell', ['-NoProfile', '-File', join(root, 'public/install.ps1')], { encoding: 'utf8', env: { ...process.env, TERMINAL_RECALL_FIXTURE_DIR: fixture, TERMINAL_RECALL_INSTALL_DIR: join(fixture, 'bad-install') } });
+  const invalid = spawnSync('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', join(root, 'public/install.ps1')], { encoding: 'utf8', env: { ...process.env, TERMINAL_RECALL_FIXTURE_DIR: fixture, TERMINAL_RECALL_INSTALL_DIR: join(fixture, 'bad-install') } });
   assert.notEqual(invalid.status, 0);
-  assert.match(invalid.stderr, /Checksum verification failed/);
+  assert.match(invalid.stderr + invalid.stdout, /Checksum verification failed/);
 } else {
   const fixture = mkdtempSync(join(tmpdir(), 'terminal-recall-sh-fixture-'));
   const payload = join(fixture, 'payload');
