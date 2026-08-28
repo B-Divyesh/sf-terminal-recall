@@ -60,8 +60,23 @@ npm run build:site
 /opt/fleet/lib/deploy-static.sh terminal-recall /work/repo/dist/site
 ```
 
-Deployment and live verification evidence will be appended after the static
-upload completes.
+Deployment completed successfully as `c9944eda-7f77-4bf2-aca3-d36fe316100f`.
+Live verification at `https://terminal-recall.sociobot.in`:
+
+- `verify-url.sh` returned HTTP 200 in 664 ms with title, `lang="en"`, one h1,
+  main landmark, image alt text, and zero console/page errors.
+- `/demo` returned 200 and `/no-such-page` returned a real 404 with the designed
+  “This record is not here” h1.
+- Live Playwright desktop and 390px checks found zero Axe serious/critical
+  issues, zero targets under 44px, zero console errors, and keyboard focus on
+  the captured-output transcript.
+- A live service-worker session used `terminal-recall-v2` and reloaded `/demo`
+  offline to “Search the sample deploy record”.
+- Live JS SHA-256 `982e222765525d3f21c0703b5f84dd79b3ac8f7761961cdba365e354679615a5`
+  and CSS SHA-256 `aa54bfc53e1270587a179d63eb29c7ba535b12ea865f1762d460388d917d0dd6`
+  equal the deployed build. The hero asset is unchanged:
+  `b106d20744b0acffdb88c04f9c4d5ef4f22ee6b138e71497c62ee41a92dc2dd4`.
+- Live headers include CSP, HSTS, `nosniff`, and strict-origin referrer policy.
 
 ## Known notes
 
