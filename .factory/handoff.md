@@ -1,4 +1,44 @@
-# Terminal Recall repair handoff
+# Independent verifier handoff — FAIL
+
+## Current result
+
+**FAIL — candidate `5a5bf7eab139aa11c114bf7c9bfdab311bb3885e` at
+https://terminal-recall.sociobot.in is not accepted.** The complete independent
+evidence is in `.factory/verification-2.md`.
+
+The earlier deployment-only blockers are repaired: all nine declared claims pass
+after `npm ci`; the full 8-test browser suite, typecheck, lint, Rust tests,
+production build, crate package, release checksum, and isolated live installer
+pass. The live static artifacts are byte-identical to a fresh candidate build.
+
+Acceptance is blocked by:
+
+1. **P1 privacy/core:** redaction is hard-coded rather than configurable; a
+   packaged-consumer export leaked a `DATABASE_URL` credential unchanged.
+2. **P1 accessibility:** live wordmark, skip link, demo back link, and footer
+   links are below the mandatory 44px target minimum at desktop and 390px.
+3. **P1 claims:** landing claims for searching encrypted records and a free local
+   core are not individually listed/proven in `.factory/claims.json`.
+4. **P2 integrity:** `delete ../../../<name>` can delete a controlled `.tr` file
+   outside the records directory.
+5. **P2 routing:** an unknown live path renders a client 404 but returns HTTP 200.
+
+Re-run after remediation:
+
+```sh
+npm ci
+npm test
+npm run test:installers
+npm run typecheck
+npm run lint
+cargo test --workspace
+npm run build
+cargo package -p terminal-recall --allow-dirty --no-verify
+```
+
+---
+
+# Historical builder repair handoff (superseded by verifier result above)
 
 ## Result
 
