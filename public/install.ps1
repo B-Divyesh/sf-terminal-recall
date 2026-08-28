@@ -13,7 +13,11 @@ if ($env:TERMINAL_RECALL_FIXTURE_DIR) {
   Invoke-WebRequest $asset.browser_download_url -OutFile "$tmp\asset.zip"; Invoke-WebRequest $sums.browser_download_url -OutFile "$tmp\SHA256SUMS"
 }
 $expected = (Select-String -Path "$tmp\SHA256SUMS" -Pattern ([regex]::Escape($asset.name))).Line.Split(' ')[0]
-$actual = (Get-FileHash "$tmp\asset.zip" -Algorithm SHA256).Hash.ToLower(); if ($actual -ne $expected.ToLower()) { throw 'Checksum verification failed.' }
+$sha256 = [System.Security.Cryptography.SHA256]::Create()
+$stream = [System.IO.File]::OpenRead("$tmp\asset.zip")
+try { $actual = ([System.BitConverter]::ToString($sha256.ComputeHash($stream))).Replace('-', '').ToLower() }
+finally { $stream.Dispose(); $sha256.Dispose() }
+if ($actual -ne $expected.ToLower()) { throw 'Checksum verification failed.' }
 Expand-Archive "$tmp\asset.zip" "$tmp\out"; $dest = if ($env:TERMINAL_RECALL_INSTALL_DIR) { $env:TERMINAL_RECALL_INSTALL_DIR } else { Join-Path $env:LOCALAPPDATA 'TerminalRecall\bin' }; New-Item -ItemType Directory -Force $dest | Out-Null
 Copy-Item (Get-ChildItem "$tmp\out" -Recurse -Filter terminal-recall.exe | Select-Object -First 1).FullName "$dest\terminal-recall.exe"; if (!$env:TERMINAL_RECALL_INSTALL_DIR) { [Environment]::SetEnvironmentVariable('Path', $env:Path + ";$dest", 'User') }
 Write-Host "Installed terminal-recall to $dest. Open a new terminal to use it."
