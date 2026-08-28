@@ -37,6 +37,19 @@ test('@claim:offline-demo sample remains available after a service-worker visit'
   await context.close();
 });
 
+test('service worker claims the page with the replacement cache version', async ({ browser }) => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto('/demo');
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  await page.reload();
+  await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
+  const cacheNames = await page.evaluate(() => caches.keys());
+  expect(cacheNames).toContain('terminal-recall-v2');
+  expect(cacheNames).not.toContain('terminal-recall-v1');
+  await context.close();
+});
+
 test('@claim:no-demo-uploads sample interactions make no third-party network request', async ({ page }) => {
   const origins = new Set<string>();
   page.on('request', request => origins.add(new URL(request.url()).origin));
