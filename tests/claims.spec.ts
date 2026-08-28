@@ -295,3 +295,30 @@ test('390px layouts have no overflow and every visible control is at least 44px'
   }
   await context.close();
 });
+
+test('reviewed wording and catalog description stay plain and consistent', async () => {
+  const source = readFileSync(join(root, 'src/main.ts'), 'utf8');
+  const readme = readFileSync(join(root, 'README.md'), 'utf8');
+  for (const removed of ['LOCAL EVIDENCE LAYER', 'Free local core', 'browser sandbox', 'Search a captured session', 'THREE SMALL STEPS', 'Checksum is in the release', 'ready for submission']) {
+    expect(source + readme).not.toContain(removed);
+  }
+  expect(source).toContain('SAVED ON YOUR DEVICE');
+  expect(source).toContain('Search a saved record');
+  expect(source).toContain('HOW TO SAVE AND FIND OUTPUT');
+  expect(readme).toContain('Terminal Recall saves only commands you run through it.');
+  expect(readme).toContain('## Capture, search, and export records');
+  const description = readFileSync(join(root, '.factory/catalog-description.txt'), 'utf8').trim();
+  expect(description.length).toBeLessThanOrEqual(120);
+  expect(description).toMatch(/^Save\b/);
+});
+
+test('the product share image is exactly 1200 by 630 pixels', async ({ page }) => {
+  await page.goto('/');
+  const dimensions = await page.evaluate(async () => {
+    const image = new Image();
+    image.src = '/terminal-recall-share.webp';
+    await image.decode();
+    return [image.naturalWidth, image.naturalHeight];
+  });
+  expect(dimensions).toEqual([1200, 630]);
+});

@@ -27,7 +27,8 @@ irm https://terminal-recall.sociobot.in/install.ps1 | iex
 ```
 
 The installers compare the downloaded archive with its published SHA-256 value.
-Check each release note for current signing information before installing.
+Windows and macOS files are unsigned in v0.1.4. On macOS, use right-click → Open if Gatekeeper asks.
+Each release includes `SIGNING-STATUS.json`, generated after the build checks its signing state.
 
 The repository also contains a Homebrew formula, Scoop manifest, and draft winget
 manifests. They are packaging inputs, not submitted package listings.

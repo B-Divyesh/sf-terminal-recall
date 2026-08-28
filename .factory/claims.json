@@ -56,6 +56,13 @@
     "sandbox": "Fresh temporary fixture, archive, checksum, and install directory; execute the native installer on Linux and Windows CI."
   },
   {
+    "id": "unsigned-release",
+    "claim": "The v0.1.4 Windows and macOS files are unsigned, as recorded by the release build.",
+    "where": "README install section",
+    "test": "npm run test:signing",
+    "sandbox": "Fetch the public v0.1.4 SIGNING-STATUS.json produced only after platform-native signing checks pass."
+  },
+  {
     "id": "encrypted-local-records",
     "claim": "Terminal records are encrypted on this device and searchable with the local key.",
     "where": "Landing facts, Privacy, README",

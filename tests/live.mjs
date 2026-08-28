@@ -46,7 +46,7 @@ for (const asset of [...new Set(liveHtml.match(assetPattern) || []), 'hero-termi
 
 const release = await (await fetch('https://api.github.com/repos/B-Divyesh/sf-terminal-recall/releases/latest')).json();
 assert.equal(release.tag_name, 'v0.1.4');
-for (const name of ['terminal-recall-linux-x86_64.tar.gz', 'terminal-recall-windows-x86_64.zip', 'terminal-recall-macos-arm64.tar.gz', 'terminal-recall-macos-x86_64.tar.gz', 'terminal-recall-linux-x86_64.deb', 'terminal-recall-linux-x86_64.rpm', 'terminal-recall-macos-arm64.pkg', 'terminal-recall-macos-x86_64.pkg', 'SHA256SUMS', 'latest.json']) {
+for (const name of ['terminal-recall-linux-x86_64.tar.gz', 'terminal-recall-windows-x86_64.zip', 'terminal-recall-macos-arm64.tar.gz', 'terminal-recall-macos-x86_64.tar.gz', 'terminal-recall-linux-x86_64.deb', 'terminal-recall-linux-x86_64.rpm', 'terminal-recall-macos-arm64.pkg', 'terminal-recall-macos-x86_64.pkg', 'SHA256SUMS', 'latest.json', 'SIGNING-STATUS.json']) {
   assert.ok(release.assets.some(asset => asset.name === name), `release is missing ${name}`);
 }
 
@@ -92,6 +92,7 @@ assert.match(excerpt, /\[REDACTED\]/);
 assert.doesNotMatch(excerpt, /sk_demo_/);
 assert.deepEqual([...demoOrigins], []);
 assert.deepEqual(await seriousAxeFindings(page), []);
+await page.screenshot({ path: `${evidence}/live-demo-desktop.png`, fullPage: true });
 
 await page.goBack();
 await page.waitForURL(`${base}/`);
@@ -141,6 +142,7 @@ assert.ok(await missingPage.locator('meta[name="description"]').getAttribute('co
 assert.ok(await missingPage.locator('meta[property="og:image"]').getAttribute('content'));
 assert.deepEqual(await undersizedTargets(missingPage), []);
 assert.deepEqual(await seriousAxeFindings(missingPage), []);
+await missingPage.screenshot({ path: `${evidence}/live-404-mobile.png`, fullPage: true });
 
 await context.close();
 await mobile.close();

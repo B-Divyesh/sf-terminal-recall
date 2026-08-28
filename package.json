@@ -12,6 +12,7 @@
     "lint": "npm run typecheck && cargo clippy --workspace -- -D warnings",
     "test:installers": "node tests/installer.mjs",
     "test:recording": "node scripts/generate-recording.mjs --check",
+    "test:signing": "node tests/signing.mjs",
     "generate:recording": "node scripts/generate-recording.mjs",
     "test:deployment": "node tests/deployment.mjs",
     "test:live": "node tests/live.mjs",

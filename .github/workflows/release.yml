@@ -97,6 +97,25 @@ jobs:
           if [[ "${{ matrix.kind }}" == "macos" ]]; then
             pkgbuild --root release/root --identifier in.sociobot.terminal-recall --version "$version" ${{ matrix.name }}.pkg
           fi
+      - name: Verify and record unsigned Windows binary
+        if: matrix.kind == 'windows'
+        shell: pwsh
+        run: |
+          try {
+            [System.Security.Cryptography.X509Certificates.X509Certificate2]::CreateFromSignedFile("release/terminal-recall.exe") | Out-Null
+            throw "Windows binary is signed; update the public signing disclosure before release."
+          } catch [System.Security.Cryptography.CryptographicException] {
+            '{"platform":"windows","status":"unsigned"}' | Set-Content terminal-recall-signing-windows.json
+          }
+      - name: Verify and record unsigned macOS binary
+        if: matrix.kind == 'macos'
+        shell: bash
+        run: |
+          if codesign --verify --strict release/root/usr/local/bin/terminal-recall 2>/dev/null; then
+            echo "macOS binary is signed; update the public signing disclosure before release" >&2
+            exit 1
+          fi
+          printf '{"platform":"%s","status":"unsigned"}\n' '${{ matrix.name }}' > 'terminal-recall-signing-${{ matrix.target }}.json'
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.name }}
@@ -122,8 +141,11 @@ jobs:
           printf '{"version":"%s","assets":{"linux":"%s/terminal-recall-linux-x86_64.tar.gz","windows":"%s/terminal-recall-windows-x86_64.zip","macos_arm64":"%s/terminal-recall-macos-arm64.tar.gz","macos_x86_64":"%s/terminal-recall-macos-x86_64.tar.gz"}}\n' "$version" "$base" "$base" "$base" "$base" > latest.json
           linux_hash=$(awk '$2=="terminal-recall-linux-x86_64.tar.gz" {print $1}' SHA256SUMS)
           windows_hash=$(awk '$2=="terminal-recall-windows-x86_64.zip" {print $1}' SHA256SUMS)
+          mac_arm_hash=$(awk '$2=="terminal-recall-macos-arm64.tar.gz" {print $1}' SHA256SUMS)
+          mac_x64_hash=$(awk '$2=="terminal-recall-macos-x86_64.tar.gz" {print $1}' SHA256SUMS)
+          jq -s . terminal-recall-signing-*.json > SIGNING-STATUS.json
           mkdir -p Formula scoop-bucket winget
-          printf 'class TerminalRecall < Formula\n  desc "Keep selected terminal output searchable and encrypted locally"\n  homepage "https://terminal-recall.sociobot.in"\n  url "%s/terminal-recall-linux-x86_64.tar.gz"\n  sha256 "%s"\n  version "%s"\n  def install\n    bin.install "terminal-recall"\n  end\nend\n' "$base" "$linux_hash" "$version" > Formula/terminal-recall.rb
+          printf 'class TerminalRecall < Formula\n  desc "Keep selected terminal output searchable and encrypted locally"\n  homepage "https://terminal-recall.sociobot.in"\n  version "%s"\n  on_macos do\n    if Hardware::CPU.arm?\n      url "%s/terminal-recall-macos-arm64.tar.gz"\n      sha256 "%s"\n    else\n      url "%s/terminal-recall-macos-x86_64.tar.gz"\n      sha256 "%s"\n    end\n  end\n  on_linux do\n    url "%s/terminal-recall-linux-x86_64.tar.gz"\n    sha256 "%s"\n  end\n  def install\n    bin.install "terminal-recall"\n  end\nend\n' "$version" "$base" "$mac_arm_hash" "$base" "$mac_x64_hash" "$base" "$linux_hash" > Formula/terminal-recall.rb
           printf '{"version":"%s","description":"Selected terminal output, kept local.","homepage":"https://terminal-recall.sociobot.in","license":"MIT","url":"%s/terminal-recall-windows-x86_64.zip","hash":"%s","bin":"terminal-recall.exe"}\n' "$version" "$base" "$windows_hash" > scoop-bucket/terminal-recall.json
           printf 'PackageIdentifier: ParamFactory.TerminalRecall\nPackageVersion: %s\nInstallerType: zip\nInstallers:\n  - Architecture: x64\n    InstallerUrl: %s/terminal-recall-windows-x86_64.zip\n    InstallerSha256: %s\n    NestedInstallerType: portable\n    NestedInstallerFiles:\n      - RelativeFilePath: terminal-recall.exe\n        PortableCommandAlias: terminal-recall\nManifestType: installer\nManifestVersion: 1.6.0\n' "$version" "$base" "$windows_hash" > winget/ParamFactory.TerminalRecall.installer.yaml
           printf 'PackageIdentifier: ParamFactory.TerminalRecall\nPackageVersion: %s\nDefaultLocale: en-US\nPublisher: Param Factory\nPackageName: Terminal Recall\nShortDescription: Keep selected terminal output searchable and local.\nLicense: MIT\nManifestType: defaultLocale\nManifestVersion: 1.6.0\n' "$version" > winget/ParamFactory.TerminalRecall.locale.en-US.yaml
@@ -133,6 +155,7 @@ jobs:
           files: |
             terminal-recall-*
             SHA256SUMS
+            SIGNING-STATUS.json
             latest.json
             Formula/terminal-recall.rb
             scoop-bucket/terminal-recall.json
