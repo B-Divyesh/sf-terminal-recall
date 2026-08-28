@@ -111,8 +111,9 @@ jobs:
         if: matrix.kind == 'macos'
         shell: bash
         run: |
-          if codesign --verify --strict release/root/usr/local/bin/terminal-recall 2>/dev/null; then
-            echo "macOS binary is signed; update the public signing disclosure before release" >&2
+          signing=$(codesign -dv --verbose=4 release/root/usr/local/bin/terminal-recall 2>&1 || true)
+          if echo "$signing" | grep -q '^Authority='; then
+            echo "macOS binary has a signing authority; update the public signing disclosure before release" >&2
             exit 1
           fi
           printf '{"platform":"%s","status":"unsigned"}\n' '${{ matrix.name }}' > 'terminal-recall-signing-${{ matrix.target }}.json'

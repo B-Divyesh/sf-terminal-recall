@@ -49,6 +49,14 @@ assert.equal(release.tag_name, 'v0.1.4');
 for (const name of ['terminal-recall-linux-x86_64.tar.gz', 'terminal-recall-windows-x86_64.zip', 'terminal-recall-macos-arm64.tar.gz', 'terminal-recall-macos-x86_64.tar.gz', 'terminal-recall-linux-x86_64.deb', 'terminal-recall-linux-x86_64.rpm', 'terminal-recall-macos-arm64.pkg', 'terminal-recall-macos-x86_64.pkg', 'SHA256SUMS', 'latest.json', 'SIGNING-STATUS.json']) {
   assert.ok(release.assets.some(asset => asset.name === name), `release is missing ${name}`);
 }
+const releaseAsset = name => release.assets.find(asset => asset.name === name);
+const checksumText = await (await fetch(releaseAsset('SHA256SUMS').browser_download_url)).text();
+const linuxArchive = Buffer.from(await (await fetch(releaseAsset('terminal-recall-linux-x86_64.tar.gz').browser_download_url)).arrayBuffer());
+const expectedLinuxHash = checksumText.split('\n').find(line => line.endsWith('  terminal-recall-linux-x86_64.tar.gz'))?.split(/\s+/)[0];
+assert.equal(sha256(linuxArchive), expectedLinuxHash, 'published Linux archive does not match SHA256SUMS');
+const releaseManifest = await (await fetch(releaseAsset('latest.json').browser_download_url)).json();
+assert.equal(releaseManifest.version, '0.1.4');
+for (const platform of ['linux', 'windows', 'macos_arm64', 'macos_x86_64']) assert.ok(releaseManifest.assets[platform]);
 
 const browser = await chromium.launch();
 const context = await browser.newContext({ viewport: { width: 1366, height: 900 } });
