@@ -12,7 +12,7 @@ Every review finding is closed below. Screenshot evidence is under
 | Finding | Change made | Evidence |
 | --- | --- | --- |
 | F-1-1 | Centralized demo transitions. Back, Start for real, and Reset delete only `demo:terminal-recall:logs`; Forward reseeds it and preserves a real-data sentinel. | `@claim:demo-private`; `polish-1-mobile-demo.png`; live `/?demo=1` Back/Forward check. |
-| F-1-2 | The CLI demo now invokes the public capture, search, and export commands with `examples/deploy-check.txt`. A generated asciinema v2 cast appears on home and demo. The browser control is labeled “Browser simulation.” | `@claim:cli-demo-recording`, `npm run test:recording`; `polish-1-demo.png`; live home and `/?demo=1`. |
+| F-1-2 | The CLI demo now invokes the public capture, search, and export commands with `cli/examples/deploy-check.txt`. A generated asciinema v2 cast appears on home and demo. The browser control is labeled “Browser simulation.” | `@claim:cli-demo-recording`, `npm run test:recording`; `polish-1-demo.png`; live home and `/?demo=1`. |
 | F-1-3 | Rebuilt `404.html` with skip link, header/nav/main/footer, metadata, icons, darkened teal, designed focus, and 44 px targets. | `static 404 page has…`; `npm run test:deployment`; `polish-1-404.png`; live unknown URL returns 404 and passes Axe. |
 | F-1-4 | Added a platform asset claim that exercises Linux, macOS, and Windows fixture metadata and detected-platform selection. | `@claim:release-platform-assets`; live release API check. |
 | F-1-5 | Platform-native release jobs now verify the files are unsigned and emit `SIGNING-STATUS.json`; README states the checked v0.1.4 status and Gatekeeper step. | `@claim:unsigned-release`; successful macOS/Windows release jobs and public signing report. |

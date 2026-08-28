@@ -7,7 +7,7 @@ The page starts with a real CLI transcript generated from
 `terminal-recall demo`. Below it, a labeled browser simulation supports search
 and redacted export without installing anything.
 
-The sample comes from `examples/deploy-check.txt`. It contains a deploy check,
+The sample comes from `cli/examples/deploy-check.txt`. It contains a deploy check,
 an API key, a token, a password, a bearer token, a migration result, and a health
 check. All values are fictional.
 

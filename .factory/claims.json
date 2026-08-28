@@ -8,7 +8,7 @@
   },
   {
     "id": "cli-demo-recording",
-    "claim": "The self-hosted terminal recording is generated from the compiled CLI using examples/deploy-check.txt.",
+    "claim": "The self-hosted terminal recording is generated from the compiled CLI using cli/examples/deploy-check.txt.",
     "where": "Landing real CLI run, demo, README",
     "test": "npm test -- --grep @claim:cli-demo-recording",
     "sandbox": "Compile terminal-recall, run demo, normalize temporary paths, and byte-compare the generated asciinema cast."

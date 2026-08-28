@@ -1,5 +1,5 @@
 {"version":2,"width":96,"height":18,"timestamp":1787947200,"env":{"TERM":"xterm-256color","SHELL":"terminal-recall demo"}}
-[0,"o","$ terminal-recall capture --label \"deploy smoke test\" < examples/deploy-check.txt\r\n"]
+[0,"o","$ terminal-recall capture --label \"deploy smoke test\" < cli/examples/deploy-check.txt\r\n"]
 [0.12,"o","Saved encrypted record <record-id>.\r\n"]
 [0.24,"o","$ terminal-recall search \"health check\"\r\n"]
 [0.36,"o","\r\n"]

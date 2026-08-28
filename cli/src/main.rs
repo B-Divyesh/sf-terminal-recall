@@ -474,7 +474,7 @@ fn main_result() -> Result<i32> {
         }
         Commands::Demo => {
             let d = std::env::temp_dir().join(format!("terminal-recall-demo-{}", Uuid::new_v4()));
-            let sample = include_str!("../../examples/deploy-check.txt");
+            let sample = include_str!("../examples/deploy-check.txt");
             let executable = std::env::current_exe()?;
             let mut capture = Command::new(&executable)
                 .args([
@@ -530,7 +530,7 @@ fn main_result() -> Result<i32> {
             if !exported.status.success() {
                 bail!("demo export failed")
             }
-            println!("$ terminal-recall capture --label \"deploy smoke test\" < examples/deploy-check.txt");
+            println!("$ terminal-recall capture --label \"deploy smoke test\" < cli/examples/deploy-check.txt");
             println!("Saved encrypted record {id}.");
             println!("$ terminal-recall search \"health check\"");
             print!("{}", String::from_utf8_lossy(&searched.stdout));

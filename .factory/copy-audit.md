@@ -16,7 +16,7 @@ from sentence counts.
 | See the command line tool run | 6 | Pass |
 | The recording uses the bundled deploy sample. | 7 | Pass |
 | Its generated file is checked against the compiled CLI in every test run. | 13 | Pass |
-| Recorded from terminal-recall v0.1.4 using examples/deploy-check.txt. | 6 | Pass |
+| Recorded from terminal-recall v0.1.4 using cli/examples/deploy-check.txt. | 6 | Pass |
 | Search a saved record | 4 | Pass |
 | The demo never reads or changes your saved records. | 9 | Pass |
 | Browser simulation. | 2 | Pass |

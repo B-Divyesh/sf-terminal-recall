@@ -1,5 +1,5 @@
 import './style.css';
-import sampleText from '../examples/deploy-check.txt?raw';
+import sampleText from '../cli/examples/deploy-check.txt?raw';
 import recordingCast from '../public/terminal-recall-demo.cast?raw';
 
 type SavedRecord = { id: string; label: string; command: string; captured: string; lines: string[] };
@@ -103,7 +103,7 @@ function recordingPanel() {
   const transcript = recording.map(line => escapeHtml(line)).join('\n');
   return page(
     '<figure class="cli-recording" aria-labelledby="recording-title">',
-    '<figcaption><strong id="recording-title">Real CLI run</strong><span>Recorded from terminal-recall v', VERSION, ' using examples/deploy-check.txt.</span></figcaption>',
+    '<figcaption><strong id="recording-title">Real CLI run</strong><span>Recorded from terminal-recall v', VERSION, ' using cli/examples/deploy-check.txt.</span></figcaption>',
     '<pre tabindex="0" aria-label="Terminal recording transcript"><code>', transcript, '</code></pre>',
     '</figure>',
   );

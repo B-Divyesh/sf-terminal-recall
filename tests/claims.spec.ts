@@ -61,7 +61,7 @@ test('@claim:redacted-export browser and CLI exports remove every named secret c
   expect(browserExport.match(/\[REDACTED\]/g)?.length).toBeGreaterThanOrEqual(4);
 
   const home = temporary();
-  const id = capture(home, readFileSync(join(root, 'examples/deploy-check.txt'), 'utf8'));
+  const id = capture(home, readFileSync(join(root, 'cli/examples/deploy-check.txt'), 'utf8'));
   const output = join(home, 'excerpt.txt');
   const exported = cli(home, ['export', id, '--output', output, '--context', '0']);
   expect(exported.status, exported.stderr).toBe(0);
